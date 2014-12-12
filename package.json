@@ -29,7 +29,9 @@
 		"xml2js": "*",
 		"nconf": "*",
 		"aws-sdk-apis": "*",
-		"supervisor": "*"
+		"supervisor": "*",
+		"async": "*",
+		"twit": "*"
 	},
 	"dependencies": {
 	},
