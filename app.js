@@ -16,6 +16,12 @@ var T = new Twit({
 	access_token_secret: nconf.get("access_token_secret")
 });
 
+var last = 1;
+
+var dateTime = new Date();
+
+
+
 var queue = [];
 
 var idTwit = [];
@@ -31,10 +37,16 @@ async.series([
 		setInterval(function (){
 
 			T.get('search/tweets', {
-					q: '#chess start since:2014-12-10',
-					count: 4,
+					q: '#chess start since:' + dateTime.getFullYear()+ 
+					'-' + (dateTime.getMonth()+1) + '-' + dateTime.getDate(),
+					since_id: last
 
 				}, function(err, item) {
+					if (!item.statuses[0]) {
+					last = 1;
+				} else{
+					last = item.statuses[0].id
+				}
 
 				async.series([
 					function(callback){
@@ -82,7 +94,7 @@ async.series([
 						queue = undefined;
 						queue=[];
 
-							},5000);
+							},10000);
 					}
 				],
 				function(err, results){
