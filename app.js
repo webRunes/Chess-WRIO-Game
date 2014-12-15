@@ -40,7 +40,6 @@ async.series([
 					q: '#chess start since:' + dateTime.getFullYear()+ 
 					'-' + (dateTime.getMonth()+1) + '-' + dateTime.getDate(),
 					since_id: last
-
 				}, function(err, item) {
 					if (!item.statuses[0]) {
 					last = 1;
@@ -55,8 +54,10 @@ async.series([
 							var textMessageUser = item.statuses[i].text;
 
 							console.log(item.statuses[i].user.screen_name);
+							var regExpFind = /.*[\s#chess\s|\sstart\s]/;
+							var messageForUs = textMessageUser.match(regExpFind);
 
-							if (textMessageUser === '#chess start') {
+							if (messageForUs) {
 
 								var reply = {
 									textReply: '@' + item.statuses[i].user.screen_name +' Game started',
