@@ -8,13 +8,14 @@ var async = require('async');
 
 // app.use(express.static(__dirname + '/public'));
 
-
-var T = new Twit({
-	consumer_key: nconf.get("consumer_key"),
-	consumer_secret: nconf.get("consumer_secret"),
-	access_token: nconf.get("access_token"),
-	access_token_secret: nconf.get("access_token_secret")
-});
+var twconf = {
+	consumer_key: nconf.get("api:twitterLogin:consumerKey"),
+	consumer_secret: nconf.get("api:twitterLogin:consumerSecret"),
+	access_token: nconf.get("api:twitterLogin:access_token"),
+	access_token_secret: nconf.get("api:twitterLogin:access_token_secret")
+};
+console.log(twconf);
+var T = new Twit(twconf);
 
 var last = 1;
 
@@ -71,32 +72,30 @@ async.series([
 						callback(null, 'two');
 				},
 
+				// ==========================
+				// writeResult
+				// ==========================
+				function (callback){
+					setInterval(function (){
 
+								for(var i = 0; i<queue.length;i++){
+							T.post('statuses/update', {
+								status: queue[i].textReply,
+								screen_name: queue[i].screenName,
+								in_reply_to_status_id: queue[i].statusIdStrReply
+							}, function (err,data,res){
+								// resp.write(JSON.stringify(data));
+								queue = undefined;
+								queue=[];
+							});
+						};
 
-					// ==========================
-					// writeResult
-					// ==========================
-					function (callback){
-						setInterval(function (){
+					callback(null, 'two');
+					queue = undefined;
+					queue=[];
 
-									for(var i = 0; i<queue.length;i++){
-								T.post('statuses/update', {
-									status: queue[i].textReply,
-									screen_name: queue[i].screenName,
-									in_reply_to_status_id: queue[i].statusIdStrReply
-								}, function (err,data,res){
-									// resp.write(JSON.stringify(data));
-									queue = undefined;
-									queue=[];
-								});
-							};
-
-						callback(null, 'two');
-						queue = undefined;
-						queue=[];
-
-							},10000);
-					}
+						},10000);
+				}
 				],
 				function(err, results){
 				    // results is now equal to ['one', 'two']
