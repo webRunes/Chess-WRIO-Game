@@ -8,13 +8,14 @@ var async = require('async');
 
 // app.use(express.static(__dirname + '/public'));
 
-
-var T = new Twit({
+var twconf = {
 	consumer_key: nconf.get("api:twitterLogin:consumerKey"),
 	consumer_secret: nconf.get("api:twitterLogin:consumerSecret"),
-	access_token: nconf.get("api:twitterLogin:accessToken"),
+	access_token: nconf.get("api:twitterLogin:access_token"),
 	access_token_secret: nconf.get("api:twitterLogin:access_token_secret")
-});
+};
+console.log(twconf);
+var T = new Twit(twconf);
 
 var last = 1;
 
