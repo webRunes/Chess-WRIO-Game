@@ -18,13 +18,8 @@ console.log(twconf);
 var T = new Twit(twconf);
 
 var last = 1;
-
 var dateTime = new Date();
-
-
-
 var queue = [];
-
 var idTwit = [];
 
 async.series([
@@ -37,7 +32,7 @@ async.series([
 		console.log('after');
 		setInterval(function (){
 
-			T.get('search/tweets', {
+				T.get('search/tweets', {
 					q: '#chess start since:' + dateTime.getFullYear()+ 
 					'-' + (dateTime.getMonth()+1) + '-' + dateTime.getDate(),
 					since_id: last
@@ -54,12 +49,12 @@ async.series([
 
 							var textMessageUser = item.statuses[i].text;
 
-							console.log(item.statuses[i].user.screen_name);
+							console.log("Got tweet from", item.statuses[i].user.screen_name);
 							var regExpFind = /.*[\s#chess\s|\sstart\s]/;
 							var messageForUs = textMessageUser.match(regExpFind);
 
 							if (messageForUs) {
-
+								console.log("Message 4 us");
 								var reply = {
 									textReply: '@' + item.statuses[i].user.screen_name +' Game started',
 									statusIdStrReply: item.statuses[i].id_str,
@@ -75,15 +70,21 @@ async.series([
 				// ==========================
 				// writeResult
 				// ==========================
-				function (callback){
+				function (callback) {
 					setInterval(function (){
-
-								for(var i = 0; i<queue.length;i++){
+						console.log(queue.length);
+						for(var i = 0; i<queue.length;i++){
 							T.post('statuses/update', {
 								status: queue[i].textReply,
 								screen_name: queue[i].screenName,
 								in_reply_to_status_id: queue[i].statusIdStrReply
 							}, function (err,data,res){
+								if (err) {
+									console.log("Tweet send error ",err);
+									return;
+								}
+								console.log(data);
+
 								// resp.write(JSON.stringify(data));
 								queue = undefined;
 								queue=[];
@@ -101,9 +102,9 @@ async.series([
 				    // results is now equal to ['one', 'two']
 				})
 				}
-			)
-		queue = undefined;
-		queue=[];
+			);
+	//	queue = undefined;
+	//queue=[];
 		},10000);
 	callback(null, 'two');
 }
