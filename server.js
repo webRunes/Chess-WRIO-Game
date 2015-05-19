@@ -37,11 +37,19 @@ async.series([
 					'-' + (dateTime.getMonth()+1) + '-' + dateTime.getDate(),
 					since_id: last
 				}, function(err, item) {
+					console.log("Searching from last ",last,"got ", item.statuses.length);
 					if (!item.statuses[0]) {
-					last = 1;
-				} else{
-					last = item.statuses[0].id
-				}
+					//last = 1;
+					//console.log ("--- reseting last");
+					} else{
+							for (var i = 0; i < item.statuses.length; i++) {
+								console.log ("Got id",item.statuses[i].id );
+								if (item.statuses[i].id > last) {
+									last = item.statuses[i].id.toString();
+									console.log("===Remembering last ",last);
+								}
+							}
+					}
 
 				async.series([
 					function(callback){
@@ -72,7 +80,6 @@ async.series([
 				// ==========================
 				function (callback) {
 					setInterval(function (){
-						console.log(queue.length);
 						for(var i = 0; i<queue.length;i++){
 							T.post('statuses/update', {
 								status: queue[i].textReply,
