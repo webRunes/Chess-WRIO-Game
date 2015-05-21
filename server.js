@@ -1,6 +1,6 @@
 var express = require('express');
 var app = require("./wrio_app.js").init(express);
-app.listen(3000);
+app.listen(5005);
 
 var nconf = require("./wrio_nconf.js").init();
 var Twit = require('twit');
@@ -29,13 +29,13 @@ setInterval(function() {
 	}, function(err, item) {
 		console.log("Searching from last ", last, "got ", item.statuses.length);
 		if (item.statuses.length > 0) {
-				for (var i = 0; i < item.statuses.length; i++) {
-					console.log ("Got id",item.statuses[i].id );
-					if (item.statuses[i].id > last) {
-						last = item.statuses[i].id.toString();
-						console.log("===Remembering last ",last);
-					}
+			for (var i = 0; i < item.statuses.length; i++) {
+				console.log ("Got id",item.statuses[i].id );
+				if (item.statuses[i].id > last) {
+					last = item.statuses[i].id.toString() + 1;
+					console.log("===Remembering last ",last);
 				}
+			}
 		}
 
 		async.waterfall([
@@ -53,7 +53,7 @@ setInterval(function() {
 					if (messageForUs) {
 						console.log("Message 4 us");
 						var reply = {
-							textReply: '@' + item.statuses[i].user.screen_name +' Game started',
+							textReply: '@' + item.statuses[i].user.screen_name +' Game started ' + (Math.random() * 1000).toFixed(0),
 							statusIdStrReply: item.statuses[i].id_str,
 							screenName: item.statuses[i].user.screen_name
 						};
@@ -86,4 +86,4 @@ setInterval(function() {
 		]);
 		}
 	);
-},10000);
+}, 10000);
