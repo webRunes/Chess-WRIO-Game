@@ -16,7 +16,7 @@ exports.search = function(query) {
 		request
 			.post(titterUrl + '/api/search')
 			.send({
-				twitter_creds: twconf,
+				twitterCreds: twconf,
 				query: query
 			})
 			.end(function(err, response) {
@@ -32,3 +32,25 @@ exports.search = function(query) {
 			});
 	});
 };
+
+exports.reply = function(statuses) {
+	return new Promise(function(resolve, reject) {
+		request
+			.post(titterUrl + '/api/replyAll')
+			.send({
+				twitterCreds: twconf,
+				statuses: statuses,
+				message: 'Game started ' + (Math.random() * 1000).toFixed(0)
+			}).end(function(err, response) {
+				if (err) return reject(err);
+
+				if (response.notFound) {
+					return reject(new Error(response.text));
+				}
+
+				if(response.ok) {
+					resolve('Successfully replied');
+				}	
+			});
+	});
+}

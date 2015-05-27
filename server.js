@@ -16,15 +16,21 @@ var query = {
 setInterval(function() {
 	Twitter.search(query)
 		.then(function(statuses) {
-			console.log('Found:', statuses.length, 'statuses');
+			console.log('Found ', statuses.length, 'statuses');
 
 			var lastStatus = _.max(statuses, function(status) {
 				return bigInt(status.id_str);
 			});
 			
 			query.since_id = lastStatus.id_str;
+			
+			return statuses;
+		})
+		.then(Twitter.reply)
+		.then(function(body) {
+			console.log(body);
 		})
 		.catch(function(error) {
 			console.log(error.message);
-		});
+		})
 }, 10000);
