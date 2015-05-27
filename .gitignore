@@ -176,3 +176,5 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 
+# App config file
+config.json
