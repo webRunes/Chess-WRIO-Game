@@ -1,6 +1,7 @@
 var nconf = require('./wrio_nconf.js');
 var moment = require('moment');
 var _ = require('lodash');
+var bigInt = require("big-integer");
 
 var Twitter = require('./twitter');
 
@@ -9,7 +10,7 @@ var START_CHESS_QUERY = '"%23chess start" OR "start %23chess" since:'
 
 var query = {
 	q: START_CHESS_QUERY,
-	since_id: 1
+	since_id: '1'
 };
 
 setInterval(function() {
@@ -18,10 +19,10 @@ setInterval(function() {
 			console.log('Found:', statuses.length, 'statuses');
 
 			var lastStatus = _.max(statuses, function(status) {
-				return status.id;
+				return bigInt(status.id_str);
 			});
-
-			query.since_id = lastStatus.id;
+			
+			query.since_id = lastStatus.id_str;
 		})
 		.catch(function(error) {
 			console.log(error.message);
