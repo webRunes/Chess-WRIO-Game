@@ -1,89 +1,33 @@
+var nconf = require('./wrio_nconf.js').init();
 var express = require('express');
-var app = require("./wrio_app.js").init(express);
-app.listen(5005);
-
-var nconf = require("./wrio_nconf.js").init();
-var Twit = require('twit');
-var async = require('async');
+var app = require('./wrio_app.js').init(express);
+app.listen(nconf.get('server:port'));
 
 var moment = require('moment');
+var _ = require('lodash');
 
-var twconf = {
-	consumer_key: nconf.get("api:twitterLogin:consumerKey"),
-	consumer_secret: nconf.get("api:twitterLogin:consumerSecret"),
-	access_token: nconf.get("api:twitterLogin:access_token"),
-	access_token_secret: nconf.get("api:twitterLogin:access_token_secret")
-};
-
-console.log(twconf);
-var T = new Twit(twconf);
+var Twitter = require('./twitter');
 
 var START_CHESS_QUERY = '"%23chess start" OR "start %23chess" since:' 
 		+ moment().format('YYYY-MM-DD');
-var last = 1;
+
+var query = {
+	q: START_CHESS_QUERY,
+	since_id: 1
+};
 
 setInterval(function() {
-	T.get('search/tweets',  {
-		q: START_CHESS_QUERY,
-		since_id: last
-	}, function(err, item) {
-		console.log("Searching from last ", last, "got ", item.statuses.length);
-		if (item.statuses.length > 0) {
-			for (var i = 0; i < item.statuses.length; i++) {
-				console.log ("Got id",item.statuses[i].id );
-				if (item.statuses[i].id > last) {
-					last = item.statuses[i].id.toString() + 1;
-					console.log("===Remembering last ",last);
-				}
-			}
-		}
+	Twitter.search(query)
+		.then(function(statuses) {
+			console.log('Found:', statuses.length, 'statuses');
 
-		async.waterfall([
-			function(callback){
-				var queue = [];
+			var lastStatus = _.max(statuses, function(status) {
+				return status.id;
+			});
 
-				for (var i = 0; i < item.statuses.length; i++){
-
-					var textMessageUser = item.statuses[i].text;
-
-					console.log("Got tweet from", item.statuses[i].user.screen_name);
-					var regExpFind = /.*[\s#chess\s|\sstart\s]/;
-					var messageForUs = textMessageUser.match(regExpFind);
-
-					if (messageForUs) {
-						console.log("Message 4 us");
-						var reply = {
-							textReply: '@' + item.statuses[i].user.screen_name +' Game started ' + (Math.random() * 1000).toFixed(0),
-							statusIdStrReply: item.statuses[i].id_str,
-							screenName: item.statuses[i].user.screen_name
-						};
-
-						queue.push(reply);
-					}
-				}
-				callback(null, queue);
-			},
-
-			// ==========================
-			// writeResult
-			// ==========================
-			function (queue, callback) {
-				for(var i = 0; i<queue.length;i++){
-					T.post('statuses/update', {
-						status: queue[i].textReply,
-						screen_name: queue[i].screenName,
-						in_reply_to_status_id: queue[i].statusIdStrReply
-					}, function (err,data,res){
-						if (err) {
-							console.log("Tweet send error ",err);
-							return;
-						}
-						console.log(data);
-					});
-				};
-				callback(null, 'two');
-			}
-		]);
-		}
-	);
+			query.since_id = lastStatus.id;
+		})
+		.catch(function(error) {
+			console.log(error.message);
+		});
 }, 10000);

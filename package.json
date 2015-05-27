@@ -4,43 +4,27 @@
   "description": "https://github.com/webRunes/Chess-WRIO-Game/",
   "main": "gm-test.js",
   "dependencies": {
-    "express": "4.9.4",
-    "media-typer": "*",
-    "qs": "*",
-    "etag": "*",
-    "on-finished": "*",
-    "proxy-addr": "*",
-    "ms": "*",
-    "depd": "*",
-    "destroy": "*",
-    "finalhandler": "*",
-    "utils-merge": "*",
-    "debug": "*",
     "body-parser": "*",
-    "when": "~3.1.0",
-    "http": "~0.0",
-    "mysql": "~2.5",
-    "jade": "1.7",
-    "xmlbuilder": "*",
-    "xml2js": "*",
+    "es6-promise": "^2.1.1",
+    "express": "4.9.4",
+    "lodash": "^3.9.3",
+    "moment": "^2.10.3",
     "nconf": "*",
-    "aws-sdk-apis": "*",
-    "supervisor": "*",
-    "async": "*",
+    "superagent": "^1.2.0",
     "twit": "*"
   },
   "devDependencies": {},
   "scripts": {
-	"start": "echo \"Build Completed.\" "
+    "start": "echo \"Build Completed.\" "
   },
   "repository": {
-	"type": "git",
-	"url": "https://github.com/webRunes/Chess-WRIO-Game.git"
+    "type": "git",
+    "url": "https://github.com/webRunes/Chess-WRIO-Game.git"
   },
   "author": "webRunes",
   "license": "MIT",
   "bugs": {
-	"url": "https://github.com/webRunes/Chess-WRIO-Game.git/issues"
+    "url": "https://github.com/webRunes/Chess-WRIO-Game.git/issues"
   },
   "homepage": "https://github.com/webRunes/Chess-WRIO-Game.git"
 }
