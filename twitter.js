@@ -1,4 +1,4 @@
-var nconf = require("./wrio_nconf.js").init();
+var nconf = require("./wrio_nconf.js");
 var Promise = require('es6-promise').Promise;
 var request = require('superagent');
 

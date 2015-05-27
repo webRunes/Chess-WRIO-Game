@@ -1,8 +1,4 @@
-var nconf = require('./wrio_nconf.js').init();
-var express = require('express');
-var app = require('./wrio_app.js').init(express);
-app.listen(nconf.get('server:port'));
-
+var nconf = require('./wrio_nconf.js');
 var moment = require('moment');
 var _ = require('lodash');
 
