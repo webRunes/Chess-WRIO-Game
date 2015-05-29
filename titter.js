@@ -20,9 +20,11 @@ exports.search = function(query) {
 				query: query
 			})
 			.end(function(err, response) {
-				if (err) return reject(err);
+				if (err) {
+					return reject(err);
+				}
 
-				if (response.notFound) {
+				if (response.error) {
 					return reject(new Error(response.text));
 				}
 
@@ -40,15 +42,17 @@ exports.reply = function(statuses) {
 			.send({
 				twitterCreds: twconf,
 				statuses: statuses,
-				message: 'Game started ' + (Math.random() * 1000).toFixed(0)
+				message: 'Game started'
 			}).end(function(err, response) {
-				if (err) return reject(err);
+				if (err) {
+					return reject(err);
+				}
 
-				if (response.notFound) {
+				if (response.error) {
 					return reject(new Error(response.text));
 				}
 
-				if(response.ok) {
+				if (response.ok) {
 					resolve('Successfully replied');
 				}	
 			});

@@ -4,6 +4,12 @@ var fs = require('fs');
 
 nconf.env().argv();
 nconf.file({file:'./config.json'});
-nconf.set('database:host', '127.0.0.1');
+
+var defaultUrl = 'http://titter' + nconf.get('db:workdomain') ;
+nconf.defaults({
+    api: {
+        titterUrl: defaultUrl
+    }
+});
 
 module.exports = nconf;

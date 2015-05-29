@@ -3,7 +3,7 @@ var moment = require('moment');
 var _ = require('lodash');
 var bigInt = require("big-integer");
 
-var Twitter = require('./twitter');
+var Titter = require('./titter');
 
 var START_CHESS_QUERY = '"%23chess start" OR "start %23chess" since:' 
 		+ moment().format('YYYY-MM-DD');
@@ -14,7 +14,7 @@ var query = {
 };
 
 setInterval(function() {
-	Twitter.search(query)
+	Titter.search(query)
 		.then(function(statuses) {
 			console.log('Found ', statuses.length, 'statuses');
 
@@ -26,7 +26,7 @@ setInterval(function() {
 			
 			return statuses;
 		})
-		.then(Twitter.reply)
+		.then(Titter.reply)
 		.then(function(body) {
 			console.log(body);
 		})
