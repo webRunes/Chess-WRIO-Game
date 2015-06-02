@@ -8,6 +8,7 @@
     "es6-promise": "^2.1.1",
     "lodash": "^3.9.3",
     "moment": "^2.10.3",
+    "mysql": "^2.7.0",
     "nconf": "*",
     "superagent": "^1.2.0",
     "twit": "*"

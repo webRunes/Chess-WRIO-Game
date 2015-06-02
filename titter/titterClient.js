@@ -1,4 +1,4 @@
-var nconf = require("./wrio_nconf.js");
+var nconf = require("../wrio_nconf.js");
 var Promise = require('es6-promise').Promise;
 var request = require('superagent');
 
@@ -12,6 +12,7 @@ var twconf = {
 var titterUrl = nconf.get('api:titterUrl');
 
 exports.search = function(query) {
+	console.log('Titter:', 'Start searching for new twits')
 	return new Promise(function(resolve, reject) {
 		request
 			.post(titterUrl + '/api/search')
@@ -20,17 +21,10 @@ exports.search = function(query) {
 				query: query
 			})
 			.end(function(err, response) {
-				if (err) {
-					return reject(err);
-				}
+				if (response.error)	return reject(new Error(response.text));
+				if (err) return reject(err);
 
-				if (response.error) {
-					return reject(new Error(response.text));
-				}
-
-				if(response.ok) {
-					resolve(response.body.statuses);
-				}
+				if (response.ok) resolve(response.body.statuses);
 			});
 	});
 };
@@ -44,17 +38,10 @@ exports.reply = function(statuses) {
 				statuses: statuses,
 				message: 'Game started'
 			}).end(function(err, response) {
-				if (err) {
-					return reject(err);
-				}
+				if (response.error) return reject(new Error(response.text));
+				if (err) return reject(err);
 
-				if (response.error) {
-					return reject(new Error(response.text));
-				}
-
-				if (response.ok) {
-					resolve('Successfully replied');
-				}	
+				if (response.ok) resolve('Successfully replied');
 			});
 	});
 }
