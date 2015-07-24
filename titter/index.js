@@ -9,7 +9,7 @@ var START_CHESS_QUERY = '"#chess start" since:' + moment()
 	.subtract(3, 'hours')
 	.format('YYYY-MM-DD');
 
-exports.searchAndReply = function(db) {
+exports.searchAndReply = function() {
 	var query = {
 		q: START_CHESS_QUERY,
 		since_id: appData.getSinceId()
