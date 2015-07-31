@@ -1,7 +1,5 @@
 var Titter = require('./titter');
 var nconf = require('./wrio_nconf.js');
-var MongoClient = require('mongodb')
-	.MongoClient;
 var express = require('express');
 var app = express();
 
@@ -10,7 +8,7 @@ var server = require('http')
 	.listen(nconf.get("server:port"), function(req, res) {
 		console.log('app listening on port ' + nconf.get('server:port') + '...');
 		setInterval(function() {
-			Titter.searchAndReply(db);
+			Titter.searchAndReply();
 		}, 10000);
 	});
 
