@@ -9,7 +9,7 @@ var START_CHESS_QUERY = '"#chess start" since:' + moment()
 	.subtract(3, 'hours')
 	.format('YYYY-MM-DD');
 
-exports.searchAndReply = function(db) {
+exports.searchAndReply = function() {
 	var query = {
 		q: START_CHESS_QUERY,
 		since_id: appData.getSinceId()
@@ -27,9 +27,11 @@ exports.searchAndReply = function(db) {
 							status: status,
 							opponent: opponent[1]
 						})
-						.then(function() {})
+						.then(function(message) {
+							console.log(message);
+						})
 						.catch(function(err) {
-							console.log('Titter:32:', err.text)
+							console.log('Titter:', err.text || err.message || err)
 						});
 				}
 			});
@@ -43,6 +45,6 @@ exports.searchAndReply = function(db) {
 			return statuses;
 		})
 		.catch(function(err) {
-			console.log('Titter:46:', err.text);
+			console.log('Titter:', err.text || err.message || err);
 		});
 };

@@ -9,19 +9,11 @@ var server = require('http')
 	.createServer(app)
 	.listen(nconf.get("server:port"), function(req, res) {
 		console.log('app listening on port ' + nconf.get('server:port') + '...');
-		var url = 'mongodb://' + nconf.get('mongo:user') + ':' + nconf.get('mongo:password') + '@' + nconf.get('mongo:host') + '/' + nconf.get('mongo:dbname');
-		MongoClient.connect(url, function(err, db) {
-			if (err) {
-				console.log("Error coonect to database: " + err);
-			} else {
-				console.log("Connected correctly to server");
-				setInterval(function() {
-					Titter.searchAndReply(db);
-				}, 10000);
-			}
-		});
+		console.log("Application Started!");
+		setInterval(function() {
+			Titter.searchAndReply();
+		}, 10000);
 	});
-
 
 var session = require('express-session');
 var cookieParser = require('cookie-parser');

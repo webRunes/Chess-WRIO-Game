@@ -1,13 +1,16 @@
 var nconf = require("../wrio_nconf.js");
 var request = require('superagent')
 	.agent();
+var Promise = require('es6-promise')
+	.Promise;
 
 var twconf = {
 	consumer_key: nconf.get("api:twitterLogin:consumerKey"),
 	consumer_secret: nconf.get("api:twitterLogin:consumerSecret"),
 	access_token: nconf.get("api:twitterLogin:access_token"),
 	access_secret: nconf.get("api:twitterLogin:access_token_secret"),
-	callback: nconf.get("api:twitterLogin:callback")
+	callback: nconf.get("api:twitterLogin:callback"),
+	_callback: nconf.get("api:twitterLogin:_callback")
 };
 
 var titterUrl = nconf.get('api:titterUrl');
@@ -24,10 +27,11 @@ exports.search = function(args) {
 				query: query
 			})
 			.end(function(err, data) {
-				var data = data || {};
-				if (data.error) return reject(data.error);
-				if (err) return reject(err);
-				if (data.ok) resolve(data.body.statuses);
+				if (err) {
+					reject(err);
+				} else {
+					resolve(data.body.statuses);
+				}
 			});
 	});
 };
@@ -42,10 +46,11 @@ exports.startGame = function(args) {
 				opponent: opponent
 			})
 			.end(function(err, data) {
-				var data = data || {};
-				if (data.error) return reject(data.error);
-				if (err) return reject(err);
-				if (data.ok) resolve(data.body.statuses);
+				if (err) {
+					reject(err);
+				} else {
+					resolve(data.body.message);
+				}
 			});
 	});
 };
