@@ -7,11 +7,11 @@ var server = require('http')
 	.createServer(app)
 	.listen(nconf.get("server:port"), function(req, res) {
 		console.log('app listening on port ' + nconf.get('server:port') + '...');
+		console.log("Application Started!");
 		setInterval(function() {
 			Titter.searchAndReply();
 		}, 10000);
 	});
-
 
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
