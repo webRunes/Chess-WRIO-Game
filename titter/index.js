@@ -5,13 +5,11 @@ var bigInt = require("big-integer");
 var TitterClient = require('./titterClient');
 var appData = require('../appData');
 
-var START_CHESS_QUERY = '"#chess start" since:' + moment()
-	.subtract(3, 'hours')
-	.format('YYYY-MM-DD');
+var CHESS_QUERY = '"#chess"';
 
 exports.searchAndReply = function() {
 	var query = {
-		q: START_CHESS_QUERY,
+		q: CHESS_QUERY,
 		since_id: appData.getSinceId()
 	};
 
@@ -22,14 +20,31 @@ exports.searchAndReply = function() {
 			console.log('Titter:', 'Found', statuses.length, 'statuses');
 			statuses.map(function(status) {
 				var opponent = status.text.match(/^\#chess\sstart\s\@(.*)$/i);
+				var move = status.text.match(/^\#chess\s([a-zA-Z][0-9])-([a-zA-Z][0-9])$/i);
 				if (opponent) {
 					TitterClient.startGame({
 							status: status,
 							opponent: opponent[1]
 						})
-						.then(function() {})
+						.then(function(message) {
+							console.log(message);
+						})
 						.catch(function(err) {
-							console.log('Titter:32:', err.text)
+							console.log('Titter:', err.text || err.message || err)
+						});
+				} else if (move) {
+					TitterClient.move({
+							status: status,
+							move: {
+								from: move[1],
+								to: move[2]
+							}
+						})
+						.then(function(message) {
+							console.log(message);
+						})
+						.catch(function(err) {
+							console.log('Titter:', err.text || err.message || err)
 						});
 				}
 			});
@@ -43,6 +58,6 @@ exports.searchAndReply = function() {
 			return statuses;
 		})
 		.catch(function(err) {
-			console.log('Titter:46:', err.text);
+			console.log('Titter:', err.text || err.message || err);
 		});
 };
