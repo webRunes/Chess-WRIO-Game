@@ -16,3 +16,5 @@ deploy:
   secret_access_key:
     secure: FQTmN9/VpQ+DFq8ohxdDMe94iGjefzOacz+bzDvTmYY1NL8QsW38lofZxxsSCY1FmbGY0twLbbBH7HKw8SX2Ay7SsR/5WjIL3o6/mOF3mvJtxjjdWkX50GLRBzn46YPXKFH+bId1EJ55HVEmb71YqzGeXHItU6gTp20vD2BMU8E=
   app-id: 93744a30-44d3-4437-9fc5-66302f758848
+on:
+      branch: production
