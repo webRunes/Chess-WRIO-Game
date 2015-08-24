@@ -30,7 +30,7 @@ exports.makeMove = function(args) {
 						resolve({
 							fen: chess.fen(),
 							isGameOver: chess.game_over(),
-							isCheck: chess.check();
+							isCheck: chess.check()
 						});
 					}
 				});
