@@ -1,23 +1,26 @@
 {
-  "api": {
-    "twitterLogin": {
-	  "consumerKey": "YOR_TWITTER_CONSUMER KEY, you can find it at api.twitter.com",
-      "consumerSecret": "YOUR_TWITTER_CONSUMER_SECRET, you can find it at api.twitter.com"
-	  "token": "YOUR_TWITTER_TOKEN, you can find it at api.twitter.com",
-	  "tokenSecret": "YOUR_TWITTER_TOKEN_SECRET, you can find it at api.twitter.com"
-    }
-  },
-  "db": {
-	"host": "YOUR_HOST_IP",
-	"dbname": "YOUR_DB_NAME",
-	"user": "YOUR_DB_USER",
-	"password": "YOUR_DB_PASS",
-	"workdomain": ".wrioos.com"  // replace .wrioos.com domain with your domain
-  },
-  "server": {
-    "cookiesecret":"YOUR_COOKIE_SECRET",
-    "port":5005
-  }
-
+	"api": {
+		"twitterLogin": {
+			"consumerKey": "YOR_TWITTER_CONSUMER KEY, you can find it at api.twitter.com",
+			"consumerSecret": "YOUR_TWITTER_CONSUMER_SECRET, you can find it at api.twitter.com"
+			"token": "YOUR_TWITTER_TOKEN, you can find it at api.twitter.com",
+			"tokenSecret": "YOUR_TWITTER_TOKEN_SECRET, you can find it at api.twitter.com"
+			"callback": "TWITTER_ACCESS_CALLBACK, ex: 'http://CHESS_URL/api/access_callback'",
+			"_callback": "TWITTER_ACCESS_CALLBACK, callback for opponent player access, ex: 'http://CHESS_URL/api/game/invite/access_callback'"
+		},
+		"titterUrl": "TITTER_URL",
+		"chessUrl": "CHESS_URL"
+	},
+	"db": {
+		"host": "YOUR_HOST_IP",
+		"dbname": "YOUR_DB_NAME",
+		"user": "YOUR_DB_USER",
+		"password": "YOUR_DB_PASS",
+		"workdomain": ".wrioos.com"  // replace .wrioos.com domain with your domain
+	},
+	"server": {
+		"cookiesecret":"YOUR_COOKIE_SECRET",
+		"port":5005
+	}
 }
 
