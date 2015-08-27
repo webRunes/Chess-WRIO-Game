@@ -15,6 +15,7 @@ var $ = (function() {
 	$.prototype = {
 		db: {},
 		chessUrl: nconf.get("api:chessUrl"),
+		imagesPath: nconf.get("chessboardImagesPath"),
 		creds: {
 			consumer_key: nconf.get("api:twitterLogin:consumerKey"),
 			consumer_secret: nconf.get("api:twitterLogin:consumerSecret"),
@@ -258,6 +259,7 @@ var $ = (function() {
 								titter.uploadMedia({
 										user: name,
 										filename: filename,
+										path: $.imagesPath,
 										access: {
 											accessToken: accessToken,
 											accessTokenSecret: accessTokenSecret
@@ -321,9 +323,77 @@ var $ = (function() {
 						status: 1
 					})
 					.toArray(function(data) {
-
+						if (data && data[0]) {
+							chess.move({
+									fen: data[0].fen,
+									move: move
+								})
+								.then(function(res) {
+									console.log('Move ' + move.from + '-' + move.to + ' by @' + status.user.screen_name);
+									chessboardGenerator.chessboard({
+											fen: fen
+										})
+										.then(function(res) {
+											var filename = res.filename || '';
+											titter.uploadMedia({
+													user: name,
+													filename: filename,
+													path: $.imagesPath,
+													access: {
+														accessToken: accessToken,
+														accessTokenSecret: accessTokenSecret
+													}
+												})
+												.then(function(data) {
+													var data = JSON.parse(data);
+													titter.reply({
+															user: name,
+															media_ids: data.media_id_string,
+															message: message,
+															access: {
+																accessToken: accessToken,
+																accessTokenSecret: accessTokenSecret
+															}
+														})
+														.then(function() {
+															resolve({
+																message: '@' + opponent + ' accept game request from @' + name
+															});
+														})
+														.catch(function(err) {
+															reject(err);
+														});
+												})
+												.catch(function(err) {
+													reject(err);
+												});
+										})
+										.catch(function(err) {
+											titter.reply({
+													user: name,
+													message: message,
+													access: {
+														accessToken: accessToken,
+														accessTokenSecret: accessTokenSecret
+													}
+												})
+												.then(function() {
+													resolve({
+														message: '@' + opponent + ' accept game request from @' + name
+													});
+												})
+												.catch(function(err) {
+													reject(err);
+												});
+										});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
+						} else {
+							reject('No chess');
+						}
 					});
-				resolve('Move ' + move.from + '-' + move.to + ' by @' + status.user.screen_name);
 			});
 		}
 	}

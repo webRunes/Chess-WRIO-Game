@@ -91,6 +91,7 @@ exports.uploadMedia = function(args) {
 		access = args.access || {},
 		filename = args.filename || '',
 		message = args.message || '',
+		path = args.path || '',
 		_ = args._ || !1;
 	return new Promise(function(resolve, reject) {
 		request
@@ -98,6 +99,7 @@ exports.uploadMedia = function(args) {
 			.send({
 				creds: twconf,
 				user: user,
+				path: path,
 				filename: filename,
 				access: access,
 				_: _

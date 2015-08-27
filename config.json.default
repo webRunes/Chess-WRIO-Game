@@ -11,6 +11,7 @@
 		"titterUrl": "TITTER_URL",
 		"chessUrl": "CHESS_URL"
 	},
+	"chessboardImagesPath": "PATH_TO_FOLDER_WITH_CHESSBOARD_IMAGES",
 	"db": {
 		"host": "YOUR_HOST_IP",
 		"dbname": "YOUR_DB_NAME",

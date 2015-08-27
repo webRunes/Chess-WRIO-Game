@@ -3,6 +3,8 @@
 var Promise = require('es6-promise')
 	.Promise;
 var webshot = require('webshot');
+var nconf = require("../wrio_nconf.js");
+
 var chess = require('./chessEngineClient.js');
 
 var line = function(args) {
@@ -100,7 +102,7 @@ exports.chessboard = function(args) {
 				fen: fen
 			})
 			.then(function() {
-				var filename = '../images/' + new Date()
+				var filename = nconf.get("chessboardImagesPath") + new Date()
 					.getTime()
 					.toString(32) + Math.random()
 					.toString(32) + '.png';
