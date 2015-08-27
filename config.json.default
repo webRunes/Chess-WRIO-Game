@@ -12,7 +12,7 @@
 		"chessUrl": "CHESS_URL"
 	},
 	"chessboardImagesPath": "PATH_TO_FOLDER_WITH_CHESSBOARD_IMAGES",
-	"db": {
+	"mongo": {
 		"host": "YOUR_HOST_IP",
 		"dbname": "YOUR_DB_NAME",
 		"user": "YOUR_DB_USER",

@@ -2,7 +2,7 @@ var nconf = require('../wrio_nconf.js');
 var MongoClient = require('mongodb')
 	.MongoClient;
 
-var url = 'mongodb://' + nconf.get('db:user') + ':' + nconf.get('db:password') + '@' + nconf.get('db:host') + '/' + nconf.get('db:dbname');
+var url = 'mongodb://' + nconf.get('mongo:user') + ':' + nconf.get('mongo:password') + '@' + nconf.get('mongo:host') + '/' + nconf.get('mongo:dbname');
 MongoClient.connect(url, function(err, db) {
 	if (err) {
 		console.log("Error conecting to mongo database: " + err);
