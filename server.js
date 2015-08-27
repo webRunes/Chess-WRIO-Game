@@ -15,7 +15,7 @@ app.use(session({
 	resave: false
 }));
 
-var mongoUrl = 'mongodb://' + nconf.get('mongo:user') + ':' + nconf.get('mongo:password') + '@' + nconf.get('mongo:host') + '/' + nconf.get('mongo:dbname');
+var mongoUrl = 'mongodb://' + nconf.get('db:user') + ':' + nconf.get('db:password') + '@' + nconf.get('db:host') + '/' + nconf.get('db:dbname');
 db.mongo({
 		url: mongoUrl
 	})

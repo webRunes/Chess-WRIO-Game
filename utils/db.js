@@ -21,5 +21,3 @@ exports.mongo = function(args) {
 		});
 	});
 }
-
-exports.mySql = function(args) {}

@@ -1,13 +1,20 @@
 "use strict";
 
-var Chess = require('./chess')
-	.Chess;
+var chess = require('./chessEngine.js')
+	.Chess();
+var Promise = require('es6-promise')
+	.Promise;
 
-exports.startGame = function() {
+exports.validateFen = function(args) {
+	var args = args || {};
 	return new Promise(function(resolve, reject) {
-		var chess = new Chess();
-		resolve({
-			fen: chess.fen()
+		var fen = args.fen || '';
+		chess.validate_fen(fen, function(err, res) {
+			if (err) {
+				return reject(new Error(err.number + ' - ' + err.message));
+			} else {
+				resolve();
+			}
 		});
 	});
 };
@@ -15,9 +22,8 @@ exports.startGame = function() {
 exports.makeMove = function(args) {
 	var args = args || {};
 	return new Promise(function(resolve, reject) {
-		var chess = new Chess();
-		var fen = args.fen || '';
-		var move = args.move || {};
+		var fen = args.fen || '',
+			move = args.move || {};
 		chess.validate_fen(fen, function(err, res) {
 			if (err) {
 				return reject(new Error(err.number + ' - ' + err.message));

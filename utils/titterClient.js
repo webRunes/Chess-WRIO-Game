@@ -62,6 +62,7 @@ exports.reply = function(args) {
 		user = args.user || '',
 		access = args.access || {},
 		message = args.message || '',
+		media_ids = args.media_ids,
 		_ = args._ || !1;
 	return new Promise(function(resolve, reject) {
 		request
@@ -71,6 +72,7 @@ exports.reply = function(args) {
 				user: user,
 				access: access,
 				message: message,
+				media_ids: media_ids,
 				_: _
 			})
 			.end(function(err, data) {
@@ -78,6 +80,33 @@ exports.reply = function(args) {
 					reject(err);
 				} else {
 					resolve();
+				}
+			});
+	});
+};
+
+exports.uploadMedia = function(args) {
+	var args = args || {},
+		user = args.user || '',
+		access = args.access || {},
+		filename = args.filename || '',
+		message = args.message || '',
+		_ = args._ || !1;
+	return new Promise(function(resolve, reject) {
+		request
+			.post(titterUrl + '/api/uploadMedia')
+			.send({
+				creds: twconf,
+				user: user,
+				filename: filename,
+				access: access,
+				_: _
+			})
+			.end(function(err, data) {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(data.body.data);
 				}
 			});
 	});

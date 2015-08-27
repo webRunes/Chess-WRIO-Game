@@ -245,55 +245,58 @@ var Chess = function(fen) {
 		var position = tokens[0];
 		var square = 0;
 
-		if (!validate_fen(fen)
-			.valid) {
-			return false;
-		}
-
-		clear();
-
-		for (var i = 0; i < position.length; i++) {
-			var piece = position.charAt(i);
-
-			if (piece === '/') {
-				square += 8;
-			} else if (is_digit(piece)) {
-				square += parseInt(piece, 10);
+		validate_fen(fen, function(err, res) {
+			if (err) {
+				return false;
 			} else {
-				var color = (piece < 'a') ? WHITE : BLACK;
-				put({
-					type: piece.toLowerCase(),
-					color: color
-				}, algebraic(square));
-				square++;
+				clear();
+
+				for (var i = 0; i < position.length; i++) {
+					var piece = position.charAt(i);
+
+					if (piece === '/') {
+						square += 8;
+					} else if (is_digit(piece)) {
+						square += parseInt(piece, 10);
+					} else {
+						var color = (piece < 'a') ? WHITE : BLACK;
+						put({
+							type: piece.toLowerCase(),
+							color: color
+						}, algebraic(square));
+						square++;
+					}
+				}
+
+				turn = tokens[1];
+
+				if (tokens[2].indexOf('K') > -1) {
+					castling.w |= BITS.KSIDE_CASTLE;
+				}
+				if (tokens[2].indexOf('Q') > -1) {
+					castling.w |= BITS.QSIDE_CASTLE;
+				}
+				if (tokens[2].indexOf('k') > -1) {
+					castling.b |= BITS.KSIDE_CASTLE;
+				}
+				if (tokens[2].indexOf('q') > -1) {
+					castling.b |= BITS.QSIDE_CASTLE;
+				}
+
+				ep_square = (tokens[3] === '-') ? EMPTY : SQUARES[tokens[3]];
+				half_moves = parseInt(tokens[4], 10);
+				move_number = parseInt(tokens[5], 10);
+
+				update_setup(generate_fen());
+
+				return true;
 			}
-		}
+		})
 
-		turn = tokens[1];
-
-		if (tokens[2].indexOf('K') > -1) {
-			castling.w |= BITS.KSIDE_CASTLE;
-		}
-		if (tokens[2].indexOf('Q') > -1) {
-			castling.w |= BITS.QSIDE_CASTLE;
-		}
-		if (tokens[2].indexOf('k') > -1) {
-			castling.b |= BITS.KSIDE_CASTLE;
-		}
-		if (tokens[2].indexOf('q') > -1) {
-			castling.b |= BITS.QSIDE_CASTLE;
-		}
-
-		ep_square = (tokens[3] === '-') ? EMPTY : SQUARES[tokens[3]];
-		half_moves = parseInt(tokens[4], 10);
-		move_number = parseInt(tokens[5], 10);
-
-		update_setup(generate_fen());
-
-		return true;
 	}
 
 	function validate_fen(fen, cb) {
+		var cb = cb || function() {};
 		var errors = {
 			0: 'No errors.',
 			1: 'FEN string must contain six space-delimited fields.',
@@ -313,7 +316,7 @@ var Chess = function(fen) {
 		if (tokens.length !== 6) {
 			cb({
 				number: 1,
-				message: errors[1];
+				message: errors[1]
 			});
 		}
 
@@ -321,7 +324,7 @@ var Chess = function(fen) {
 		if (isNaN(tokens[5]) || (parseInt(tokens[5], 10) <= 0)) {
 			cb({
 				number: 2,
-				message: errors[2];
+				message: errors[2]
 			});
 		}
 
@@ -329,7 +332,7 @@ var Chess = function(fen) {
 		if (isNaN(tokens[4]) || (parseInt(tokens[4], 10) < 0)) {
 			cb({
 				number: 3,
-				message: errors[3];
+				message: errors[3]
 			});
 		}
 
@@ -337,7 +340,7 @@ var Chess = function(fen) {
 		if (!/^(-|[abcdefgh][36])$/.test(tokens[3])) {
 			cb({
 				number: 4,
-				message: errors[4];
+				message: errors[4]
 			});
 		}
 
@@ -345,7 +348,7 @@ var Chess = function(fen) {
 		if (!/^(KQ?k?q?|Qk?q?|kq?|q|-)$/.test(tokens[2])) {
 			cb({
 				number: 5,
-				message: errors[5];
+				message: errors[5]
 			});
 		}
 
@@ -353,7 +356,7 @@ var Chess = function(fen) {
 		if (!/^(w|b)$/.test(tokens[1])) {
 			cb({
 				number: 6,
-				message: errors[6];
+				message: errors[6]
 			});
 		}
 
@@ -362,7 +365,7 @@ var Chess = function(fen) {
 		if (rows.length !== 8) {
 			cb({
 				number: 7,
-				message: errors[7];
+				message: errors[7]
 			});
 		}
 
@@ -377,7 +380,7 @@ var Chess = function(fen) {
 					if (previous_was_number) {
 						cb({
 							number: 8,
-							message: errors[8];
+							message: errors[8]
 						});
 					}
 					sum_fields += parseInt(rows[i][k], 10);
@@ -386,7 +389,7 @@ var Chess = function(fen) {
 					if (!/^[prnbqkPRNBQK]$/.test(rows[i][k])) {
 						cb({
 							number: 9,
-							message: errors[9];
+							message: errors[9]
 						});
 					}
 					sum_fields += 1;
@@ -396,7 +399,7 @@ var Chess = function(fen) {
 			if (sum_fields !== 8) {
 				cb({
 					number: 10,
-					message: errors[10];
+					message: errors[10]
 				});
 			}
 		}

@@ -5,6 +5,8 @@ var Promise = require('es6-promise')
 	.Promise;
 var access = require('../utils/access.js');
 var nconf = require("../wrio_nconf.js");
+var chessClient = require('../chess_engine/chessEngineClient.js');
+var chessboardGenerator = require('../chess_engine/chessboardGenerator.js');
 
 var $ = (function() {
 
@@ -89,7 +91,8 @@ var $ = (function() {
 									invite: inv,
 									name: name,
 									opponent: opponent,
-									status: 0
+									status: 0,
+									fen: ''
 								}], function(err, res) {
 									if (err) {
 										reject(err);
@@ -103,7 +106,8 @@ var $ = (function() {
 								}, {
 									$set: {
 										invite: inv,
-										status: 0
+										status: 0,
+										fen: ''
 									}
 								}, function(err, data) {
 									if (err) {
@@ -231,34 +235,75 @@ var $ = (function() {
 				accessToken = args.accessToken || '',
 				accessTokenSecret = args.accessTokenSecret || '';
 			return new Promise(function(resolve, reject) {
-				var chess = $.db.collection('chess');
+				var chess = $.db.collection('chess'),
+					fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 				chess.update({
 					name: name,
 					opponent: opponent
 				}, {
 					$set: {
-						status: 1
+						status: 1,
+						fen: fen
 					}
 				}, function(err, res) {
 					if (err) {
 						reject(err);
 					} else {
 						var message = '@' + name + " Game started!";
-						titter.reply({
-								user: name,
-								message: message,
-								access: {
-									accessToken: accessToken,
-									accessTokenSecret: accessTokenSecret
-								}
+						chessboardGenerator.chessboard({
+								fen: fen
 							})
-							.then(function() {
-								resolve({
-									message: '@' + opponent + ' accept game request from @' + name
-								});
+							.then(function(res) {
+								var filename = res.filename || '';
+								titter.uploadMedia({
+										user: name,
+										filename: filename,
+										access: {
+											accessToken: accessToken,
+											accessTokenSecret: accessTokenSecret
+										}
+									})
+									.then(function(data) {
+										var data = JSON.parse(data);
+										titter.reply({
+												user: name,
+												media_ids: data.media_id_string,
+												message: message,
+												access: {
+													accessToken: accessToken,
+													accessTokenSecret: accessTokenSecret
+												}
+											})
+											.then(function() {
+												resolve({
+													message: '@' + opponent + ' accept game request from @' + name
+												});
+											})
+											.catch(function(err) {
+												reject(err);
+											});
+									})
+									.catch(function(err) {
+										reject(err);
+									});
 							})
 							.catch(function(err) {
-								reject(err);
+								titter.reply({
+										user: name,
+										message: message,
+										access: {
+											accessToken: accessToken,
+											accessTokenSecret: accessTokenSecret
+										}
+									})
+									.then(function() {
+										resolve({
+											message: '@' + opponent + ' accept game request from @' + name
+										});
+									})
+									.catch(function(err) {
+										reject(err);
+									});
 							});
 					}
 				});
@@ -270,6 +315,14 @@ var $ = (function() {
 				status = args.status || {},
 				move = args.move || {};
 			return new Promise(function(resolve, reject) {
+				var chess = $.db.collection('chess');
+				chess.find({
+						user: status.user.screen_name,
+						status: 1
+					})
+					.toArray(function(data) {
+
+					});
 				resolve('Move ' + move.from + '-' + move.to + ' by @' + status.user.screen_name);
 			});
 		}
