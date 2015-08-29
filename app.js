@@ -37,10 +37,11 @@ exports.searchAndReply = function(args) {
 									console.log(message);
 								})
 								.catch(function(err) {
-									console.log('Titter:', err.text || err.message || err)
+									console.log(err.text || err.message || err)
 								});
 
 						} else if (move) {
+							console.log(status.user.screen_name, move)
 							Chess.move({
 									status: status,
 									move: {
@@ -52,7 +53,7 @@ exports.searchAndReply = function(args) {
 									console.log(message);
 								})
 								.catch(function(err) {
-									console.log('Titter:', err.text || err.message || err)
+									console.log(err.text || err.message || err)
 								});
 						}
 					});
