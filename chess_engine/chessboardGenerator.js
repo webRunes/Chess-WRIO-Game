@@ -102,7 +102,7 @@ exports.chessboard = function(args) {
 				fen: fen
 			})
 			.then(function() {
-				var filename = nconf.get("chessboardImagesPath") + new Date()
+				var filename = './img/' + new Date()
 					.getTime()
 					.toString(32) + Math.random()
 					.toString(32) + '.png';

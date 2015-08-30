@@ -3,6 +3,7 @@ var request = require('superagent')
 	.agent();
 var Promise = require('es6-promise')
 	.Promise;
+var fs = require('fs');
 
 var twconf = {
 	consumer_key: nconf.get("api:twitterLogin:consumerKey"),
@@ -13,7 +14,7 @@ var twconf = {
 	_callback: nconf.get("api:twitterLogin:_callback")
 };
 
-var titterUrl = nconf.get("api:titterUrl");
+var titterUrl = 'titter' + nconf.get("server:workdomain");
 
 exports.search = function(args) {
 	var args = args || {},
@@ -89,26 +90,27 @@ exports.uploadMedia = function(args) {
 	var args = args || {},
 		user = args.user || '',
 		access = args.access || {},
-		filename = args.filename || '',
-		message = args.message || '',
-		path = args.path || '',
-		_ = args._ || !1;
+		filename = args.filename || '';
 	return new Promise(function(resolve, reject) {
+		var params = {
+			creds: twconf,
+			user: user,
+			access: access
+		};
 		request
 			.post(titterUrl + '/api/uploadMedia')
-			.send({
-				creds: twconf,
-				user: user,
-				path: path,
-				filename: filename,
-				access: access,
-				_: _
-			})
+			.field('params', JSON.stringify(params))
+			.attach('image', filename)
 			.end(function(err, data) {
+				fs.unlinkSync(filename);
 				if (err) {
 					reject(err);
 				} else {
-					resolve(data.body.data);
+					if (data.body.data.errors) {
+						reject(data.body.data.errors);
+					} else {
+						resolve(data.body.data);
+					}
 				}
 			});
 	});

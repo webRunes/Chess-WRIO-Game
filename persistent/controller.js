@@ -14,8 +14,7 @@ var $ = (function() {
 
 	$.prototype = {
 		db: {},
-		chessUrl: nconf.get("api:chessUrl"),
-		imagesPath: nconf.get("chessboardImagesPath"),
+		chessUrl: 'chess' + nconf.get("server:workdomain"),
 		creds: {
 			consumer_key: nconf.get("api:twitterLogin:consumerKey"),
 			consumer_secret: nconf.get("api:twitterLogin:consumerSecret"),
@@ -253,11 +252,9 @@ var $ = (function() {
 								fen: fen
 							})
 							.then(function(res) {
-								var filename = res.filename || '';
 								titter.uploadMedia({
 										user: name,
-										filename: filename,
-										path: $.imagesPath,
+										filename: res.filename || '',
 										access: {
 											accessToken: accessToken,
 											accessTokenSecret: accessTokenSecret
@@ -354,7 +351,6 @@ var $ = (function() {
 														titter.uploadMedia({
 																user: status.user.screen_name,
 																filename: filename,
-																path: $.imagesPath,
 																access: {
 																	accessToken: _data[0].accessToken,
 																	accessTokenSecret: _data[0].accessTokenSecret

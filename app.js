@@ -37,9 +37,8 @@ exports.searchAndReply = function(args) {
 									console.log(message);
 								})
 								.catch(function(err) {
-									console.log(err.text || err.message || err)
+									console.log(err)
 								});
-
 						} else if (move) {
 							console.log(status.user.screen_name, move)
 							Chess.move({
@@ -53,7 +52,7 @@ exports.searchAndReply = function(args) {
 									console.log(message);
 								})
 								.catch(function(err) {
-									console.log(err.text || err.message || err)
+									console.log(err);
 								});
 						}
 					});

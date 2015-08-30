@@ -29,8 +29,8 @@ var $ = function(args, cb) {
 					.send('<script>window.close()</script>');
 			})
 			.catch(function(err) {
-				res.status(err.status)
-					.send(err.text);
+				res.status(400)
+					.send(err);
 			});
 	});
 
@@ -44,8 +44,8 @@ var $ = function(args, cb) {
 					.send('<script>window.close()</script>');
 			})
 			.catch(function(err) {
-				res.status(err.statusCode)
-					.send(err.message);
+				res.status(400)
+					.send(err);
 			});
 	});
 
@@ -62,9 +62,8 @@ var $ = function(args, cb) {
 					.send('<script>window.close()</script>');
 			})
 			.catch(function(err) {
-				console.log(err)
-				res.status(err.statusCode)
-					.send(err.message);
+				res.status(400)
+					.send(err);
 			});
 	});
 
