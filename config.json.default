@@ -7,11 +7,8 @@
 			"tokenSecret": "YOUR_TWITTER_TOKEN_SECRET, you can find it at api.twitter.com"
 			"callback": "TWITTER_ACCESS_CALLBACK, ex: 'http://CHESS_URL/api/access_callback'",
 			"_callback": "TWITTER_ACCESS_CALLBACK, callback for opponent player access, ex: 'http://CHESS_URL/api/game/invite/access_callback'"
-		},
-		"titterUrl": "TITTER_URL",
-		"chessUrl": "CHESS_URL"
+		}
 	},
-	"chessboardImagesPath": "PATH_TO_FOLDER_WITH_CHESSBOARD_IMAGES",
 	"mongo": {
 		"host": "YOUR_HOST_IP",
 		"dbname": "YOUR_DB_NAME",
