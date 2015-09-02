@@ -1,14 +1,25 @@
 var utils = require('./utils');
 
 var appData = {};
+var db;
 
-utils.getAppData()
-	.then(function(data) {
-		appData = data || {};
-	})
-	.catch(function(err) {
-		console.log('App data:', err.message);
+exports.init = function(args, cb) {
+	db = args.db || {};
+	var cb = cb || function() {};
+	utils.init({
+		db: db
+	}, function() {
+		utils.getAppData()
+			.then(function(data) {
+				appData = data || {};
+				cb();
+			})
+			.catch(function(err) {
+				cb(err);
+				console.log('App data:', err.message);
+			});
 	});
+}
 
 setInterval(function() {
 	utils.sendAppData(appData);
