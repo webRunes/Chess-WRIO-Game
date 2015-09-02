@@ -1,4 +1,4 @@
-var Titter = require('./app.js');
+var Titter = new(require('./app.js'))();
 var nconf = require('./wrio_nconf.js');
 var express = require('express');
 var app = express();
@@ -30,11 +30,17 @@ db.mongo({
 					db: db
 				}));
 				console.log("Application Started!");
-				setInterval(function() {
-					Titter.searchAndReply({
-						db: db
-					});
-				}, 10000);
+				Titter.init({
+					db: db
+				}, function(err) {
+					if (err) {
+						console.log(err);
+					} else {
+						setInterval(function() {
+							Titter.searchAndReply();
+						}, 10000);
+					}
+				})
 			});
 	})
 	.catch(function(err) {
