@@ -26,6 +26,9 @@ db.mongo({
 			.createServer(app)
 			.listen(nconf.get("server:port"), function(req, res) {
 				console.log('app listening on port ' + nconf.get('server:port') + '...');
+				app.get('/', function(req, res) {
+					res.status(200).send('Chess');
+				})
 				app.use('/api/', (require('./persistent/route.js'))({
 					db: db
 				}));
