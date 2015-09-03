@@ -50,32 +50,36 @@ var $ = (function() {
 									move: status.text.match(/([a-zA-Z][0-9])-([a-zA-Z][0-9])/i)
 								};
 								if (query.chess && query.start && query.opponent) {
-									console.log(status.user.screen_name, query.opponent)
-									Chess.startGame({
-											status: status,
-											opponent: query.opponent[1]
-										})
-										.then(function(message) {
-											console.log(message);
-										})
-										.catch(function(err) {
-											console.log(err)
-										});
+									if (status.text.replace(/(\#chess|start|\@[^\s]+|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
+										console.log(status.user.screen_name, query.opponent)
+										Chess.startGame({
+												status: status,
+												opponent: query.opponent[1]
+											})
+											.then(function(message) {
+												console.log(message);
+											})
+											.catch(function(err) {
+												console.log(err)
+											});
+									}
 								} else if (query.chess && query.move) {
-									console.log(status.user.screen_name, query.move)
-									Chess.move({
-											status: status,
-											move: {
-												from: query.move[1],
-												to: query.move[2]
-											}
-										})
-										.then(function(message) {
-											console.log(message);
-										})
-										.catch(function(err) {
-											console.log(err);
-										});
+									if (status.text.replace(/(\#chess|e[0-9]+\-e[0-9]+|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
+										console.log(status.user.screen_name, query.move, query.chess)
+										Chess.move({
+												status: status,
+												move: {
+													from: query.move[1],
+													to: query.move[2]
+												}
+											})
+											.then(function(message) {
+												console.log(message);
+											})
+											.catch(function(err) {
+												console.log(err);
+											});
+									}
 								}
 							});
 
