@@ -6,7 +6,6 @@ var TitterClient = require('./utils/titterClient');
 var Chess = new(require('./persistent/controller.js'))();
 var appData = require('./appData');
 
-
 var $ = (function() {
 
 	var $ = function() {
