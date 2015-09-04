@@ -47,7 +47,7 @@ var $ = (function() {
 									start: status.text.match(/start/),
 									chess: status.text.match(/\#chess/),
 									opponent: status.text.match(/\@([^\s]+)/i),
-									move: status.text.match(/([a-zA-Z][0-9])-([a-zA-Z][0-9])/i)
+									move: status.text.match(/([a-hA-H][0-9])\-([a-hA-H][0-9])/i)
 								};
 								if (query.chess && query.start && query.opponent) {
 									if (status.text.replace(/(\#chess|start|\@[^\s]+|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
@@ -64,7 +64,7 @@ var $ = (function() {
 											});
 									}
 								} else if (query.chess && query.move) {
-									if (status.text.replace(/(\#chess|e[0-9]+\-e[0-9]+|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
+									if (status.text.replace(/(\#chess|[a-hA-H][0-9]\-[a-hA-H][0-9]|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
 										console.log(status.user.screen_name, query.move, query.chess)
 										Chess.move({
 												status: status,

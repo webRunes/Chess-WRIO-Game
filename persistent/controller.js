@@ -14,7 +14,7 @@ var $ = (function() {
 
 	$.prototype = {
 		db: {},
-		chessUrl: 'chess' + nconf.get("server:workdomain"),
+		chessUrl: 'localhost:5005', //'chess' + nconf.get("server:workdomain"),
 		creds: {
 			consumer_key: nconf.get("api:twitterLogin:consumerKey"),
 			consumer_secret: nconf.get("api:twitterLogin:consumerSecret"),
@@ -248,7 +248,7 @@ var $ = (function() {
 					if (err) {
 						reject(err);
 					} else {
-						var message = '@' + name + " Game started!";
+						var message = '@' + name + ' Game started! Send \"#chess help\" to get help';
 						chessboardGenerator.chessboard({
 								fen: fen
 							})
@@ -327,19 +327,22 @@ var $ = (function() {
 					})
 					.toArray(function(err, data) {
 						if (data && data[0]) {
-							var name = (data[0].name === status.user.screen_name) ? data[0].opponent : data[0].name;
-							var moveRigth = (data[0].name === status.user.screen_name) ? 'w' : 'b';
+							var name = (data[0].name === status.user.screen_name) ? data[0].opponent : data[0].name,
+								moveRigth = (data[0].name === status.user.screen_name) ? 'w' : 'b',
+								message = '@' + name + ' ' + move.from + '-' + move.to + '. Visit http://chess.wrioos.com for info.';
 							chessClient.makeMove({
 									fen: data[0].fen,
 									move: move,
 									moveRigth: moveRigth
 								})
 								.then(function(res) {
-									var message = '@' + name + ' ' + move.from + '-' + move.to;
+									var _status = 1;
 									if (res.inCheckmate) {
-										message += '. You checkmate.';
+										message += '. Checkmate. @' + status.user.screen_name + ' wins! Visit http://chess.wrioos.com for info.';
+										_status = 2;
 									} else if (res.inCheck) {
-										message += '. You check.';
+										message += '. Check! Visit http://chess.wrioos.com for info.';
+										_status = 2;
 									}
 									chessboardGenerator.chessboard({
 											fen: res.fen
@@ -362,11 +365,11 @@ var $ = (function() {
 															.then(function(__data) {
 																try {
 																	__data = JSON.parse(__data);
-																} catch (e) {
-																}
+																} catch (e) {}
 																chess.update(data[0], {
 																	$set: {
-																		fen: res.fen
+																		fen: res.fen,
+																		status: _status
 																	}
 																}, function(err, res) {
 																	if (err) {
@@ -408,7 +411,27 @@ var $ = (function() {
 										});
 								})
 								.catch(function(err) {
-									reject(err);
+									if (err.bad) {
+										titter.reply({
+												user: status.user.screen_name,
+												message: '@' + status.user.screen_name + ' ' + move.from + '-' + move.to + '. ' + err.message + '. Visit http://chess.wrioos.com for info.',
+												in_reply_to_status_id: status.id_str,
+												access: {
+													accessToken: $.creds.access_token,
+													accessTokenSecret: $.creds.access_secret
+												}
+											})
+											.then(function() {
+												resolve({
+													message: err.message
+												});
+											})
+											.catch(function(err) {
+												reject(err);
+											});
+									} else {
+										reject(err);
+									}
 								});
 						} else if (err) {
 							reject(err);
