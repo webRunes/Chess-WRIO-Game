@@ -46,7 +46,7 @@ var $ = (function() {
 								var query = {
 									start: status.text.match(/start/),
 									chess: status.text.match(/\#chess/),
-									opponent: status.text.match(/\@(.*)/i),
+									opponent: status.text.match(/\@([^\s]+)/i),
 									move: status.text.match(/([a-zA-Z][0-9])-([a-zA-Z][0-9])/i)
 								};
 								if (query.chess && query.start && query.opponent) {
