@@ -80,6 +80,7 @@ exports.auth = function(args) {
 									reject(err);
 								});
 						} else {
+							data[0].last_opponent = opponent;
 							resolve(data[0]);
 						}
 					});
