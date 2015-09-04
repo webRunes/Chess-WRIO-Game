@@ -10,9 +10,21 @@ install : npm install
 script  : npm start
 
 deploy:
-  provider: opsworks
-  access_key_id:
-    secure: Mh9tO5/r696QdGyKz5jEXN8BkHy0S+2omGe+QYdEY9UBDMnqpUamkWGFpzARK5uTelc3yy70bn+QMrs1kDWz176SxetChOAI/ak0t08B5brLTkjsOwJ/XyMVqjVlcAAOuPHvzPKvUmpdQaFS6Be+egpZP45TljJ1zEbpZp6VbU4=
-  secret_access_key:
-    secure: FQTmN9/VpQ+DFq8ohxdDMe94iGjefzOacz+bzDvTmYY1NL8QsW38lofZxxsSCY1FmbGY0twLbbBH7HKw8SX2Ay7SsR/5WjIL3o6/mOF3mvJtxjjdWkX50GLRBzn46YPXKFH+bId1EJ55HVEmb71YqzGeXHItU6gTp20vD2BMU8E=
-  app-id: 93744a30-44d3-4437-9fc5-66302f758848
+  - provider: opsworks
+    access_key_id:
+      secure: Mh9tO5/r696QdGyKz5jEXN8BkHy0S+2omGe+QYdEY9UBDMnqpUamkWGFpzARK5uTelc3yy70bn+QMrs1kDWz176SxetChOAI/ak0t08B5brLTkjsOwJ/XyMVqjVlcAAOuPHvzPKvUmpdQaFS6Be+egpZP45TljJ1zEbpZp6VbU4=
+    secret_access_key:
+      secure: FQTmN9/VpQ+DFq8ohxdDMe94iGjefzOacz+bzDvTmYY1NL8QsW38lofZxxsSCY1FmbGY0twLbbBH7HKw8SX2Ay7SsR/5WjIL3o6/mOF3mvJtxjjdWkX50GLRBzn46YPXKFH+bId1EJ55HVEmb71YqzGeXHItU6gTp20vD2BMU8E=
+    app-id: 93744a30-44d3-4437-9fc5-66302f758848
+    on:
+      branch: master
+  - provider: s3
+    access_key_id:
+      secure: OBpfX5QoEb0aLGx62hw6bgW0JrLrKjxk5FWDiznpQ5l3/DoS0+h6GL9vkwxHwvnXRb/6xrqQstpfoIkiQVjRhtEkcqG/4P62dSBPw+7zV49L7xLTyfRNj/X8fH/EOSVONdE0zeRyphBIv8Y3HaNG+kDY5DazdgN6kLKUFquIBFs=
+    secret_access_key:
+      secure: FDMh6t5cMl43XJu6JTYNJKPDE/hrNKEi88sk79KfXabszxKowlqo/Ucj/WLvvsUiu2FILeWZsjqssS3icHE0DvmxeSqjZm6/J3ytFK/ztEWBUsduDYlwqOgm8GbfAfzlbRdPdJ+adipclMHEhLzCYGYZPd5rF6oPAN7JCfkdDPk=
+    bucket: dev.wrioos.com
+    upload-dir: Chess-WRIO-Game
+    acl: public_read
+    on:
+      branch: master
