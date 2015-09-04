@@ -241,7 +241,8 @@ var $ = (function() {
 				}, {
 					$set: {
 						status: 1,
-						fen: fen
+						fen: fen,
+						invite: ''
 					}
 				}, function(err, res) {
 					if (err) {
