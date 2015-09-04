@@ -262,7 +262,12 @@ var $ = (function() {
 										}
 									})
 									.then(function(data) {
-										var data = JSON.parse(data);
+										console.log(data)
+										try {
+											data = JSON.parse(data);
+										} catch (e) {
+											conbsole.log(e)
+										}
 										titter.reply({
 												user: name,
 												media_ids: data.media_id_string,
