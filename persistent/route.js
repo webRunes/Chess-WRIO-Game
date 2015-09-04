@@ -35,6 +35,7 @@ var $ = function(args, cb) {
 	});
 
 	router.get('/game/invite', function(req, res) {
+		console.log('йа ссылка и по мне перешли!!!', req.headers)
 		chessController.startGameRequestCallback({
 				invite: req.query.inv
 			})
