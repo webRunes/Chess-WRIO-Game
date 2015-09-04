@@ -360,7 +360,10 @@ var $ = (function() {
 																}
 															})
 															.then(function(__data) {
-																var __data = JSON.parse(__data);
+																try {
+																	__data = JSON.parse(__data);
+																} catch (e) {
+																}
 																chess.update(data[0], {
 																	$set: {
 																		fen: res.fen
