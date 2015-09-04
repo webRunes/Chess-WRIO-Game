@@ -45,6 +45,7 @@ var $ = function(args, cb) {
 						.send('<script>window.close()</script>');
 				})
 				.catch(function(err) {
+					console.log(err)
 					res.status(400)
 						.send(err);
 				});
