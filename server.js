@@ -41,7 +41,7 @@ db.mongo({
 					} else {
 						setInterval(function() {
 							Titter.searchAndReply();
-						}, 1 * 60 * 1000);
+						}, 1 * 10 * 1000);
 					}
 				})
 			});

@@ -41,26 +41,73 @@ var $ = (function() {
 				status = args.status || {},
 				opponent = args.opponent || '';
 			return new Promise(function(resolve, reject) {
-				access.auth({
-						status: status,
-						opponent: opponent,
-						creds: $.creds,
-						db: $.db
+				var chess = $.db.collection('chess');
+				chess.find({
+						$or: [{
+							name: status.user.screen_name
+						}, {
+							opponent: status.user.screen_name
+						}],
+						status: 1
 					})
-					.then(function(res) {
-						$.startGameRequest(res)
-							.then(function(args) {
-								resolve(args.message);
-							})
-							.catch(function(err) {
-								reject(err);
-							});
-					})
-					.catch(function(err) {
-						if (err) {
-							reject(err);
+					.toArray(function(err, data) {
+						if (data && data[0]) {
+							titter.drawComment({
+									message: 'The game in progress! Please send "#chess end" if you would like to stop the current game.',
+									access: {
+										accessToken: $.creds.access_token,
+										accessTokenSecret: $.creds.access_secret
+									}
+								})
+								.then(function(__data) {
+									try {
+										__data = JSON.parse(__data);
+									} catch (e) {}
+									titter.reply({
+											user: status.user.screen_name,
+											message: '@' + status.user.screen_name,
+											media_ids: __data.media_id_string,
+											in_reply_to_status_id: status.id_str,
+											access: {
+												accessToken: $.creds.access_token,
+												accessTokenSecret: $.creds.access_secret
+											}
+										})
+										.then(function() {
+											resolve({
+												message: 'Game started yet!'
+											})
+										})
+										.catch(function(err) {
+											reject(err);
+										});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
 						} else {
-							resolve('New user. Access request to @' + status.user.screen_name);
+							access.auth({
+									status: status,
+									opponent: opponent,
+									creds: $.creds,
+									db: $.db
+								})
+								.then(function(res) {
+									$.startGameRequest(res)
+										.then(function(args) {
+											resolve(args.message);
+										})
+										.catch(function(err) {
+											reject(err);
+										});
+								})
+								.catch(function(err) {
+									if (err) {
+										reject(err);
+									} else {
+										resolve('New user. Access request to @' + status.user.screen_name);
+									}
+								});
 						}
 					});
 			});
@@ -92,7 +139,8 @@ var $ = (function() {
 									name: name,
 									opponent: opponent,
 									status: 0,
-									fen: ''
+									fen: '',
+									last_move: {}
 								}], function(err, res) {
 									if (err) {
 										reject(err);
@@ -369,7 +417,8 @@ var $ = (function() {
 																chess.update(data[0], {
 																	$set: {
 																		fen: res.fen,
-																		status: _status
+																		status: _status,
+																		last_move: move
 																	}
 																}, function(err, res) {
 																	if (err) {
@@ -431,6 +480,213 @@ var $ = (function() {
 											});
 									} else {
 										reject(err);
+									}
+								});
+						} else if (err) {
+							reject(err);
+						} else {
+							reject('No chess');
+						}
+					});
+			});
+		},
+		refresh: function(args) {
+			var $ = this,
+				args = args || {},
+				status = args.status || {};
+			return new Promise(function(resolve, reject) {
+				var chess = $.db.collection('chess');
+				chess.find({
+						$or: [{
+							name: status.user.screen_name
+						}, {
+							opponent: status.user.screen_name
+						}],
+						status: 1
+					})
+					.toArray(function(err, data) {
+						if (data && data[0]) {
+							var name = (data[0].fen.split(' ')[1] === 'w') ? data[0].opponent : data[0].name,
+								message = '@' + status.user.screen_name + '. Last move ' + data[0].last_move.from + '-' + data[0].last_move.to + ' by @' + name + '. Visit http://chess.wrioos.com for info.';
+							chessboardGenerator.chessboard({
+									fen: data[0].fen
+								})
+								.then(function(_res) {
+									var filename = _res.filename || '';
+									titter.uploadMedia({
+											user: status.user.screen_name,
+											filename: filename,
+											access: {
+												accessToken: $.creds.access_token,
+												accessTokenSecret: $.creds.access_secret
+											}
+										})
+										.then(function(__data) {
+											try {
+												__data = JSON.parse(__data);
+											} catch (e) {}
+											titter.reply({
+													user: status.user.screen_name,
+													media_ids: __data.media_id_string,
+													message: message,
+													in_reply_to_status_id: status.id_str,
+													access: {
+														accessToken: $.creds.access_token,
+														accessTokenSecret: $.creds.access_secret
+													}
+												})
+												.then(function() {
+													resolve({
+														message: 'Refresh. Move ' + data[0].last_move.from + '-' + data[0].last_move.to + ' by @' + name
+													});
+												})
+												.catch(function(err) {
+													reject(err);
+												});
+										})
+										.catch(function(err) {
+											reject(err);
+										});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
+						} else if (err) {
+							reject(err);
+						} else {
+							reject('No chess');
+						}
+					});
+			});
+		},
+		help: function(args) {
+			var $ = this,
+				args = args || {},
+				status = args.status || {};
+			return new Promise(function(resolve, reject) {
+				titter.drawComment({
+						message: 'help',
+						access: {
+							accessToken: $.creds.access_token,
+							accessTokenSecret: $.creds.access_secret
+						}
+					})
+					.then(function(__data) {
+						try {
+							__data = JSON.parse(__data);
+						} catch (e) {}
+						titter.reply({
+								user: status.user.screen_name,
+								media_ids: __data.media_id_string,
+								message: '@' + status.user.screen_name,
+								in_reply_to_status_id: status.id_str,
+								access: {
+									accessToken: $.creds.access_token,
+									accessTokenSecret: $.creds.access_secret
+								}
+							})
+							.then(function() {
+								resolve({
+									message: 'Help'
+								});
+							})
+							.catch(function(err) {
+								reject(err);
+							});
+					})
+					.catch(function(err) {
+						reject(err);
+					});
+			});
+		},
+		end: function(args) {
+			var $ = this,
+				args = args || {},
+				status = args.status || {};
+			return new Promise(function(resolve, reject) {
+				var chess = $.db.collection('chess');
+				chess.find({
+						$or: [{
+							name: status.user.screen_name
+						}, {
+							opponent: status.user.screen_name
+						}],
+						status: 1
+					})
+					.toArray(function(err, data) {
+						if (data && data[0]) {
+							var name = (data[0].name === status.user.screen_name) ? data[0].opponent : data[0].name,
+								message = 'You gave up, @' + name + 'wins! Visit http://chess.wrioos.com for info.',
+								_message = 'Your opponent gave up, you wins! Visit http://chess.wrioos.com for info.';
+							chess.update(data[0], {
+									$set: {
+										status: 2
+									}
+								},
+								function(err, res) {
+									if (err) {
+										reject(err);
+									} else {
+										titter.drawComment({
+												message: message,
+												access: {
+													accessToken: $.creds.access_token,
+													accessTokenSecret: $.creds.access_secret
+												}
+											})
+											.then(function(__data) {
+												try {
+													__data = JSON.parse(__data);
+												} catch (e) {}
+												titter.reply({
+														user: status.user.screen_name,
+														message: '@' + status.user.screen_name,
+														media_ids: __data.media_id_string,
+														in_reply_to_status_id: status.id_str,
+														access: {
+															accessToken: $.creds.access_token,
+															accessTokenSecret: $.creds.access_secret
+														}
+													})
+													.then(function() {})
+													.catch(function(err) {
+														reject(err);
+													});
+											})
+											.catch(function(err) {
+												reject(err);
+											});
+										titter.drawComment({
+												message: _message,
+												access: {
+													accessToken: $.creds.access_token,
+													accessTokenSecret: $.creds.access_secret
+												}
+											})
+											.then(function(__data) {
+												try {
+													__data = JSON.parse(__data);
+												} catch (e) {}
+												titter.reply({
+														user: name,
+														message: '@' + name,
+														media_ids: __data.media_id_string,
+														access: {
+															accessToken: $.creds.access_token,
+															accessTokenSecret: $.creds.access_secret
+														}
+													})
+													.then(function() {})
+													.catch(function(err) {
+														reject(err);
+													});
+											})
+											.catch(function(err) {
+												reject(err);
+											});
+										resolve({
+											message: '@' + status.user.screen_name + ' gave up!'
+										})
 									}
 								});
 						} else if (err) {
