@@ -14,6 +14,7 @@ var $ = (function() {
 
 	$.prototype = {
 		db: {},
+		infoText: 'Visit http://chess.wrioos.com for info.',
 		chessUrl: 'chess' + nconf.get("server:workdomain"),
 		creds: {
 			consumer_key: nconf.get("api:twitterLogin:consumerKey"),
@@ -377,7 +378,7 @@ var $ = (function() {
 						if (data && data[0]) {
 							var name = (data[0].name === status.user.screen_name) ? data[0].opponent : data[0].name,
 								moveRigth = (data[0].name === status.user.screen_name) ? 'w' : 'b',
-								message = '@' + name + ' ' + move.from + '-' + move.to + '. Visit http://chess.wrioos.com for info.';
+								message = '@' + name + ' ' + move.from + '-' + move.to + '. ' + $.infoText;
 							chessClient.makeMove({
 									fen: data[0].fen,
 									move: move,
@@ -386,10 +387,10 @@ var $ = (function() {
 								.then(function(res) {
 									var _status = 1;
 									if (res.inCheckmate) {
-										message += '. Checkmate. @' + status.user.screen_name + ' wins! Visit http://chess.wrioos.com for info.';
+										message += '. Checkmate. @' + status.user.screen_name + ' wins! ' + $.infoText;
 										_status = 2;
 									} else if (res.inCheck) {
-										message += '. Check! Visit http://chess.wrioos.com for info.';
+										message += '. Check! ' + $.infoText;
 										_status = 2;
 									}
 									chessboardGenerator.chessboard({
@@ -463,7 +464,7 @@ var $ = (function() {
 									if (err.bad) {
 										titter.reply({
 												user: status.user.screen_name,
-												message: '@' + status.user.screen_name + ' ' + move.from + '-' + move.to + '. ' + err.message + '. Visit http://chess.wrioos.com for info.',
+												message: '@' + status.user.screen_name + ' ' + move.from + '-' + move.to + '. ' + err.message + '. ' + $.infoText,
 												in_reply_to_status_id: status.id_str,
 												access: {
 													accessToken: $.creds.access_token,
@@ -507,7 +508,7 @@ var $ = (function() {
 					.toArray(function(err, data) {
 						if (data && data[0]) {
 							var name = (data[0].fen.split(' ')[1] === 'w') ? data[0].opponent : data[0].name,
-								message = '@' + status.user.screen_name + '. Last move ' + data[0].last_move.from + '-' + data[0].last_move.to + ' by @' + name + '. Visit http://chess.wrioos.com for info.';
+								message = '@' + status.user.screen_name + '. Last move ' + data[0].last_move.from + '-' + data[0].last_move.to + ' by @' + name + '. ' + $.infoText;
 							chessboardGenerator.chessboard({
 									fen: data[0].fen
 								})
@@ -616,8 +617,8 @@ var $ = (function() {
 					.toArray(function(err, data) {
 						if (data && data[0]) {
 							var name = (data[0].name === status.user.screen_name) ? data[0].opponent : data[0].name,
-								message = 'You gave up, @' + name + 'wins! Visit http://chess.wrioos.com for info.',
-								_message = 'Your opponent gave up, you wins! Visit http://chess.wrioos.com for info.';
+								message = 'You gave up, @' + name + 'wins! ' + $.infoText,
+								_message = 'Your opponent gave up, you wins! ' + $.infoText;
 							chess.update(data[0], {
 									$set: {
 										status: 2
