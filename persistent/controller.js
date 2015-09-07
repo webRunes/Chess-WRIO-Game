@@ -617,8 +617,8 @@ var $ = (function() {
 					.toArray(function(err, data) {
 						if (data && data[0]) {
 							var name = (data[0].name === status.user.screen_name) ? data[0].opponent : data[0].name,
-								message = 'You gave up, @' + name + 'wins! ' + $.infoText,
-								_message = 'Your opponent gave up, you wins! ' + $.infoText;
+								message = 'You gave up, @' + name + ' wins!',
+								_message = 'Your opponent gave up, you wins!';
 							chess.update(data[0], {
 									$set: {
 										status: 2
@@ -641,7 +641,7 @@ var $ = (function() {
 												} catch (e) {}
 												titter.reply({
 														user: status.user.screen_name,
-														message: '@' + status.user.screen_name,
+														message: '@' + status.user.screen_name + ',  ' + $.infoText,
 														media_ids: __data.media_id_string,
 														in_reply_to_status_id: status.id_str,
 														access: {
