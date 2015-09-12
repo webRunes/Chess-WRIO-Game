@@ -45,14 +45,19 @@ var $ = (function() {
 				var chess = $.db.collection('chess');
 				chess.find({
 						$or: [{
-							name: status.user.screen_name
+							name: status.user.screen_name,
+							$or: [{
+								status: 1
+							}, {
+								status: 0
+							}]
 						}, {
-							opponent: status.user.screen_name
-						}],
-						$or: [{
-							status: 1
-						}, {
-							status: 0
+							opponent: status.user.screen_name,
+							$or: [{
+								status: 1
+							}, {
+								status: 0
+							}]
 						}]
 					})
 					.toArray(function(err, data) {
@@ -93,14 +98,19 @@ var $ = (function() {
 						} else {
 							chess.find({
 									$or: [{
-										name: opponent
+										name: opponent,
+										$or: [{
+											status: 1
+										}, {
+											status: 0
+										}]
 									}, {
-										opponent: opponent
-									}],
-									$or: [{
-										status: 1
-									}, {
-										status: 0
+										opponent: opponent,
+										$or: [{
+											status: 1
+										}, {
+											status: 0
+										}]
 									}]
 								})
 								.toArray(function(err, data) {
@@ -184,9 +194,7 @@ var $ = (function() {
 			var $ = this,
 				args = args || {},
 				name = args.name || '',
-				opponent = args.last_opponent || '',
-				accessToken = args.accessToken || '',
-				accessTokenSecret = args.accessTokenSecret || '';
+				opponent = args.last_opponent || '';
 			return new Promise(function(resolve, reject) {
 				var chess = $.db.collection('chess'),
 					inv = new Date()
@@ -235,8 +243,8 @@ var $ = (function() {
 								titter.reply({
 										user: opponent,
 										access: {
-											accessToken: accessToken,
-											accessTokenSecret: accessTokenSecret
+											accessToken: $.creds.access_token,
+											accessTokenSecret: $.creds.access_secret
 										},
 										message: message
 									})
@@ -676,14 +684,19 @@ var $ = (function() {
 				var chess = $.db.collection('chess');
 				chess.find({
 						$or: [{
-							name: status.user.screen_name
+							name: status.user.screen_name,
+							$or: [{
+								status: 0
+							}, {
+								status: 1
+							}]
 						}, {
-							opponent: status.user.screen_name
-						}],
-						$or: [{
-							status: 0
-						}, {
-							status: 1
+							opponent: status.user.screen_name,
+							$or: [{
+								status: 0
+							}, {
+								status: 1
+							}]
 						}]
 					})
 					.toArray(function(err, data) {
