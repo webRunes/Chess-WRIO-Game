@@ -26,8 +26,24 @@ db.mongo({
 			.createServer(app)
 			.listen(nconf.get("server:port"), function(req, res) {
 				console.log('app listening on port ' + nconf.get('server:port') + '...');
-				app.get('/', function(req, res) {
-					res.status(200).send('Chess');
+				var wrioLogin = require('./wriologin')(db);
+				app.get('/', function(request, response) {
+					console.log(request.sessionID);
+					var render = 'index.ejs';
+					wrioLogin.loginWithSessionId(request.sessionID, function(err, res) {
+						if (err) {
+							console.log("User not found:", err);
+							response.render(render, {
+								"error": "Not logged in",
+								"user": undefined
+							});
+						} else {
+							response.render(render, {
+								"user": res
+							});
+							console.log("User found " + res);
+						}
+					})
 				})
 				app.use('/api/', (require('./persistent/route.js'))({
 					db: db

@@ -727,7 +727,7 @@ var $ = (function() {
 												} catch (e) {}
 												titter.reply({
 														user: status.user.screen_name,
-														message: '@' + status.user.screen_name + ',  ' + $.infoText,
+														message: '@' + status.user.screen_name + ', ' + $.infoText,
 														media_ids: __data.media_id_string,
 														in_reply_to_status_id: status.id_str,
 														access: {
@@ -756,7 +756,7 @@ var $ = (function() {
 												} catch (e) {}
 												titter.reply({
 														user: name,
-														message: '@' + name,
+														message: '@' + name + ', ' + $.infoText,
 														media_ids: __data.media_id_string,
 														access: {
 															accessToken: $.creds.access_token,
