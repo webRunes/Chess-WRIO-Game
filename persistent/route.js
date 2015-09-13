@@ -35,7 +35,7 @@ var $ = function(args, cb) {
 	});
 
 	router.get('/game/invite', function(req, res) {
-	//	if (req.headers.referer) {
+		if (req.headers.referer) {
 			chessController.startGameRequestCallback({
 					invite: req.query.inv
 				})
@@ -49,7 +49,7 @@ var $ = function(args, cb) {
 					res.status(400)
 						.send(err);
 				});
-	//	}
+		}
 	});
 
 	router.get('/game/invite/access_callback', function(req, res) {

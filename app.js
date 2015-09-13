@@ -64,7 +64,7 @@ var $ = (function() {
 											});
 									}
 								} else if (query.chess && query.move) {
-									if (status.text.replace(/(\#chess|[a-hA-H][0-9]\-[a-hA-H][0-9]|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
+									if (status.text.replace(/(\#chess|\@[^\s]+|[a-hA-H][0-9]\-[a-hA-H][0-9]|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
 										console.log(status.user.screen_name, query.move)
 										Chess.move({
 												status: status,

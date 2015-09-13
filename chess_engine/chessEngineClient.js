@@ -35,7 +35,7 @@ exports.makeMove = function(args) {
 						if (err) {
 							return reject({
 								bad: !0,
-								message: "Wrong move"
+								message: "Wrong move."
 							});
 						} else {
 							resolve({
@@ -48,7 +48,7 @@ exports.makeMove = function(args) {
 				} else {
 					return reject({
 						bad: !0,
-						message: "It's not your turn"
+						message: "It's not your turn."
 					});
 				}
 			}
