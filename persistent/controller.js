@@ -632,7 +632,22 @@ var $ = (function() {
 						} else if (err) {
 							reject(err);
 						} else {
-							reject('No chess');
+							titter.reply({
+									user: status.user.screen_name,
+									message: '@' + status.user.screen_name + ', You are not playing with anyone right now. Send "#chess @user start" to start a new game',
+									access: {
+										accessToken: $.creds.access_token,
+										accessTokenSecret: $.creds.access_secret
+									}
+								})
+								.then(function() {
+									resolve({
+										message: 'no chess'
+									});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
 						}
 					});
 			});
@@ -779,7 +794,22 @@ var $ = (function() {
 						} else if (err) {
 							reject(err);
 						} else {
-							reject('No chess');
+							titter.reply({
+									user: status.user.screen_name,
+									message: '@' + status.user.screen_name + ', You are not playing with anyone right now. Send "#chess @user start" to start a new game',
+									access: {
+										accessToken: $.creds.access_token,
+										accessTokenSecret: $.creds.access_secret
+									}
+								})
+								.then(function() {
+									resolve({
+										message: 'no chess'
+									});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
 						}
 					});
 			});
