@@ -584,7 +584,8 @@ var $ = (function() {
 					.toArray(function(err, data) {
 						if (data && data[0]) {
 							var name = (data[0].fen.split(' ')[1] === 'w') ? data[0].opponent : data[0].name,
-								message = '@' + status.user.screen_name + '. Last move ' + data[0].last_move.from + '-' + data[0].last_move.to + ' by @' + name + '. ' + $.infoText;
+								turn = name === status.user.screen_name ? 'Opponent`s turn. ' : 'Your turn. ',
+								message = '@' + status.user.screen_name + ', last move was ' + data[0].last_move.from + '-' + data[0].last_move.to + '. ' + turn + $.infoText;
 							chessboardGenerator.chessboard({
 									fen: data[0].fen
 								})
