@@ -1,7 +1,10 @@
 var TwitterClient = require("../utils/twitterClient");
 var titter = require("./titterClient");
+var nconf = require("../wrio_nconf.js");
 var Promise = require('es6-promise')
 	.Promise;
+
+var chessUrl = 'chess' + nconf.get("server:workdomain");
 
 exports.auth = function(args) {
 	var args = args || {},
@@ -101,7 +104,7 @@ var accessRequest = function(args) {
 			if (err) {
 				reject(err);
 			} else {
-				var message = '@' + name + ' ' + twitter.getAuthUrl(requestToken);
+				var message = '@' + name + ' ' + chessUrl + '/?start=' + requestToken;
 				titter.reply({
 						user: name,
 						message: message,
