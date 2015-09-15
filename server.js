@@ -47,21 +47,23 @@ db.mongo({
 
 				app.get('/', function(request, response) {
 					console.log(request.sessionID);
-					var render = '../index.htm';
-					wrioLogin.loginWithSessionId(request.sessionID, function(err, res) {
-						if (err) {
-							console.log("User not found:", err);
-							response.render(render, {
-								"error": "Not logged in",
-								"user": undefined
-							});
-						} else {
-							response.render(render, {
-								"user": res
-							});
-							console.log("User found " + res);
+					var command = '';
+					for (var i in request.query) {
+						if (command === '') {
+							command = i;
 						}
-					})
+					}
+					switch (command) {
+						case 'start':
+							{
+								res.end();
+								break;
+							}
+						default:
+							{
+								response.sendFile(__dirname + '/index.htm');
+							}
+					}
 				})
 				app.use('/api/', (require('./persistent/route.js'))({
 					db: db
