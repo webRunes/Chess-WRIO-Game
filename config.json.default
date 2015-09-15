@@ -17,7 +17,8 @@
 	},
 	"server": {
 		"cookiesecret":"YOUR_COOKIE_SECRET",
-		"port":5005
+		"port":5005,
+		"workdomain": ".wrioos.com"  // replace .wrioos.com domain with your domain
 	}
 }
 

@@ -6,9 +6,13 @@
 	"dependencies": {
 		"big-integer": "^1.4.5",
 		"lodash": "^3.9.3",
+		"connect-mongo": "^0.8.2",
 		"cookie-parser": "*",
+		"ejs": "^1.0.0",
+		"htm": "*",
 		"moment": "^2.10.3",
 		"es6-promise": "^2.1.1",
+		"ejs": "^1.0.0",
 		"nconf": "*",
 		"superagent": "^1.2.0",
 		"twit": "*",

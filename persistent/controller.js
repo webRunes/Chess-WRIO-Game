@@ -632,7 +632,22 @@ var $ = (function() {
 						} else if (err) {
 							reject(err);
 						} else {
-							reject('No chess');
+							titter.reply({
+									user: status.user.screen_name,
+									message: '@' + status.user.screen_name + ', You are not playing with anyone right now. Send "#chess @user start" to start a new game',
+									access: {
+										accessToken: $.creds.access_token,
+										accessTokenSecret: $.creds.access_secret
+									}
+								})
+								.then(function() {
+									resolve({
+										message: 'no chess'
+									});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
 						}
 					});
 			});
@@ -727,7 +742,7 @@ var $ = (function() {
 												} catch (e) {}
 												titter.reply({
 														user: status.user.screen_name,
-														message: '@' + status.user.screen_name + ',  ' + $.infoText,
+														message: '@' + status.user.screen_name + ', ' + $.infoText,
 														media_ids: __data.media_id_string,
 														in_reply_to_status_id: status.id_str,
 														access: {
@@ -756,7 +771,7 @@ var $ = (function() {
 												} catch (e) {}
 												titter.reply({
 														user: name,
-														message: '@' + name,
+														message: '@' + name + ', ' + $.infoText,
 														media_ids: __data.media_id_string,
 														access: {
 															accessToken: $.creds.access_token,
@@ -779,7 +794,22 @@ var $ = (function() {
 						} else if (err) {
 							reject(err);
 						} else {
-							reject('No chess');
+							titter.reply({
+									user: status.user.screen_name,
+									message: '@' + status.user.screen_name + ', You are not playing with anyone right now. Send "#chess @user start" to start a new game',
+									access: {
+										accessToken: $.creds.access_token,
+										accessTokenSecret: $.creds.access_secret
+									}
+								})
+								.then(function() {
+									resolve({
+										message: 'no chess'
+									});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
 						}
 					});
 			});
