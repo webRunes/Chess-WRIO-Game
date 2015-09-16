@@ -9,6 +9,7 @@ var session = require('express-session');
 var cookieParser = require('cookie-parser');
 var cookie_secret = nconf.get("server:cookiesecret");
 
+app.use('/', express.static(__dirname + '/index.htm'));
 
 var mongoUrl = 'mongodb://' + nconf.get('mongo:user') + ':' + nconf.get('mongo:password') + '@' + nconf.get('mongo:host') + '/' + nconf.get('mongo:dbname');
 db.mongo({
@@ -21,11 +22,9 @@ db.mongo({
 			.createServer(app)
 			.listen(nconf.get("server:port"), function(req, res) {
 				console.log('app listening on port ' + nconf.get('server:port') + '...');
-				var wrioLogin = require('./wriologin')(db);
 
 				app.set('views', __dirname + '/views');
-				app.engine('htm', require('ejs')
-					.renderFile);
+				app.set('view engine', 'ejs');
 				var SessionStore = require('connect-mongo')(session);
 				app.use(cookieParser(cookie_secret));
 				var sessionStore = new SessionStore({
@@ -46,7 +45,6 @@ db.mongo({
 				}));
 
 				app.get('/', function(request, response) {
-					console.log(request.sessionID);
 					var command = '';
 					for (var i in request.query) {
 						if (command === '') {
@@ -56,7 +54,9 @@ db.mongo({
 					switch (command) {
 						case 'start':
 							{
-								res.end();
+								response.render('start.ejs', {
+									"requestToken": request.query[command]
+								});
 								break;
 							}
 						default:
