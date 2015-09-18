@@ -197,6 +197,7 @@ var $ = (function() {
 				opponent = args.last_opponent || '';
 			return new Promise(function(resolve, reject) {
 				var chess = $.db.collection('chess'),
+					users = $.db.collection('users'),
 					inv = new Date()
 					.getTime()
 					.toString(32) + Math.random()
