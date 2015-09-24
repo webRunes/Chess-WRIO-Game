@@ -80,7 +80,7 @@ var line = function(args) {
 		startColor = !startColor;
 		chessboard += lineHTML + '</tr>';
 	});
-	chessboard += '<tr><td></td><td>a</td><td>b</td><td>c</td><td>d</td><td>e</td><td>f</td><td>g</td><td>h</td></tr></tbody></table>';
+	chessboard += '<tr><td></td><td>a</td><td>b</td><td>c</td><td>d</td><td>e</td><td>f</td><td>g</td><td>h</td></tr></tbody></table><p style="color: #aaa; font-size: 13px; font-family: sans-serif; margin-top: 5px">Posted via Titter - Advanced tweets http://titter.wrioos.com</p>';
 	return chessboard;
 };
 
@@ -112,7 +112,7 @@ exports.chessboard = function(args) {
 					siteType: 'html',
 					shotSize: {
 						width: 480,
-						height: 460
+						height: 480
 					}
 				}, function(err) {
 					if (err) {

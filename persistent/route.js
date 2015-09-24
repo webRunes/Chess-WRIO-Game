@@ -35,18 +35,21 @@ var $ = function(args, cb) {
 	});
 
 	router.get('/game/invite', function(req, res) {
-		chessController.startGameRequestCallback({
-				invite: req.query.inv
-			})
-			.then(function(data) {
-				console.log(data);
-				res.status(200)
-					.send('<script>window.close()</script>');
-			})
-			.catch(function(err) {
-				res.status(400)
-					.send(err);
-			});
+		if (req.headers.referer) {
+			chessController.startGameRequestCallback({
+					invite: req.query.inv
+				})
+				.then(function(data) {
+					console.log(data);
+					res.status(200)
+						.send('<script>window.close()</script>');
+				})
+				.catch(function(err) {
+					console.log(err)
+					res.status(400)
+						.send(err);
+				});
+		}
 	});
 
 	router.get('/game/invite/access_callback', function(req, res) {
@@ -62,6 +65,7 @@ var $ = function(args, cb) {
 					.send('<script>window.close()</script>');
 			})
 			.catch(function(err) {
+				console.log(err)
 				res.status(400)
 					.send(err);
 			});

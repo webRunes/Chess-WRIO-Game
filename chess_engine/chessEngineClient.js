@@ -33,7 +33,10 @@ exports.makeMove = function(args) {
 					chess.load(fen);
 					chess.move(move, function(err, res) {
 						if (err) {
-							return reject(new Error("Invalid move"));
+							return reject({
+								bad: !0,
+								message: "Wrong move."
+							});
 						} else {
 							resolve({
 								fen: chess.fen(),
@@ -43,7 +46,10 @@ exports.makeMove = function(args) {
 						}
 					});
 				} else {
-					return reject(new Error("Invalid move. Another side must move now."));
+					return reject({
+						bad: !0,
+						message: "It's not your turn."
+					});
 				}
 			}
 		});

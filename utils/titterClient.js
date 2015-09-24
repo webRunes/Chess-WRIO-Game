@@ -88,13 +88,11 @@ exports.reply = function(args) {
 
 exports.uploadMedia = function(args) {
 	var args = args || {},
-		user = args.user || '',
 		access = args.access || {},
 		filename = args.filename || '';
 	return new Promise(function(resolve, reject) {
 		var params = {
 			creds: twconf,
-			user: user,
 			access: access
 		};
 		request
@@ -103,6 +101,32 @@ exports.uploadMedia = function(args) {
 			.attach('image', filename)
 			.end(function(err, data) {
 				fs.unlinkSync(filename);
+				if (err) {
+					reject(err);
+				} else {
+					if (data.body.data.errors) {
+						reject(data.body.data.errors);
+					} else {
+						resolve(data.body.data);
+					}
+				}
+			});
+	});
+};
+
+exports.drawComment = function(args) {
+	var args = args || {},
+		access = args.access || {},
+		message = args.message || '';
+	return new Promise(function(resolve, reject) {
+		request
+			.post(titterUrl + '/api/drawComment')
+			.send({
+				creds: twconf,
+				access: access,
+				message: message
+			})
+			.end(function(err, data) {
 				if (err) {
 					reject(err);
 				} else {
