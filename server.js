@@ -58,8 +58,6 @@ db.mongo({
 					key: 'sid'
 				}));
 
-				var p3p = require('p3p');
-				app.use(p3p(p3p.recommended));
 				app.use(express.static(__dirname + '/'));
 
 				app.get('/', function(request, response) {
