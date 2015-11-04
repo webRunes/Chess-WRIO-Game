@@ -2,10 +2,82 @@
 <head>
 	<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
 	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+	<link href="http://webrunes.github.io/Default-WRIO-Theme/css/webrunes.css" rel="stylesheet">
+	<script type="text/javascript">
+
+		function getLoginUrl() {
+			var host = window.location.host;
+			host = host.replace('chess.', 'login.');
+			return "//" + host;
+		}
+
+		function openAuthPopup() {
+			var loginUrl = getLoginUrl();
+			var callbackurl = "//" + window.location.host + '/callback'
+			var newWin = window.open(loginUrl + '/authapi?callback=' + encodeURIComponent(callbackurl), "Login", "height=500,width=700");
+		}
+
+		function logoff() {
+			$.ajax('/logoff').success(function () {
+				location.reload();
+			});
+		}
+
+		function saveDraft() {
+			window.localStorage['draft'] = !0;
+		}
+
+		function start(user) {
+			<% if (invite) { %>
+				console.log(1)
+				$.ajax({
+					type: "POST",
+					url: "/api/invite_callback",
+					data: {
+						user: user,
+						invite: "<%= invite %>"
+					}
+				}).success(function () {
+					window.close();
+				});
+			<% } else { %>
+				console.log(2)
+				$.ajax({
+					type: "POST",
+					url: "/api/access_callback",
+					data: {
+						user: user
+					}
+				}).success(function () {
+					window.close();
+				});
+			<% } %>
+		}
+
+		function setWRIOAuthData() {
+			location.reload();
+		}
+
+		$(document).ready(function() {
+			if (window.localStorage['draft']) {
+				window.localStorage.removeItem('draft');
+				<% if (user) { %>
+					start("<%= user.titterID %>");
+				<% } %>
+			}
+		});
+	</script>
 </head>
 <body>
-
-<button onclick="location.href = 'https://twitter.com/oauth/authenticate?oauth_token=<%= requestToken %>'" class="btn btn-default col-xs-1 col-xs-offset-5" style="margin-top: 25%">Start</button>
+	<div align="center" class="form-group">
+		<% if (user) { %>
+			<h4><%= user.lastName %></h4>
+			<button type="button" class="btn btn-default" onclick="logoff();">Log out</button>
+			<button type="button" class="btn btn-primary" onclick="start('<%= user.titterID %>');"><span class="glyphicon glyphicon-ok"></span>Start</button>
+		<% } else { %>
+			<button type="button" onclick="saveDraft();openAuthPopup();" class="btn btn-primary" style="margin-top: 10px"><span class="glyphicon glyphicon-ok"></span>Login and start</button>
+		<% } %>
+	</div>
 
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 </body>

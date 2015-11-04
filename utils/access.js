@@ -13,13 +13,15 @@ exports.auth = function(args) {
 		name = status.user.screen_name || '',
 		creds = args.creds || {},
 		db = args.db || {},
-		users = db.collection('users');
+		users = db.collection('users'),
+		webRunes_Users = db.collection('webRunes_Users'),
+		twitter = TwitterClient.Client(creds);
 	return new Promise(function(resolve, reject) {
-		users.find({
-				name: name
+		webRunes_Users.find({
+				titterID: status.user.id_str
 			})
 			.toArray(function(err, data) {
-				if (err || data.length === 0 || (data[0] && data[0].accessToken === '')) {
+				if (err || data.length === 0) {
 					accessRequest({
 							status: status,
 							name: name,
@@ -27,37 +29,21 @@ exports.auth = function(args) {
 							is_callback: args.is_callback
 						})
 						.then(function(res) {
-							if (data[0] && data[0].accessToken === '') {
-								users.update({
-									name: name
-								}, {
-									$set: {
-										requestToken: res.requestToken,
-										requestTokenSecret: res.requestTokenSecret
-									}
-								}, function(err, res) {
-									reject(err);
-								});
-							} else {
-								users.insert([{
-									name: name,
-									requestToken: res.requestToken,
-									requestTokenSecret: res.requestTokenSecret,
-									accessToken: '',
-									accessTokenSecret: '',
-									last_opponent: opponent
-								}], function(err, res) {
-									reject(err);
-								});
-							}
+							users.insert([{
+								name: name,
+								titterID: status.user.id_str,
+								last_opponent: opponent
+							}], function(err, res) {
+								reject(err);
+							});
 						})
 						.catch(function(err) {
 							reject(err);
 						});
 				} else {
-					var twitter = TwitterClient.Client(creds);
-					twitter.verifyCredentials(data[0].accessToken, data[0].accessTokenSecret, function(error, _data, res) {
+					twitter.verifyCredentials(data[0].token, data[0].tokenSecret, function(error, _data, res) {
 						if (error) {
+							console.log("error: ", error)
 							accessRequest({
 									status: status,
 									name: name,
@@ -65,26 +51,71 @@ exports.auth = function(args) {
 									is_callback: args.is_callback
 								})
 								.then(function(res) {
-									users.update({
-										name: name
-									}, {
-										$set: {
-											requestToken: res.requestToken,
-											requestTokenSecret: res.requestTokenSecret,
-											accessToken: '',
-											accessTokenSecret: '',
-											last_opponent: opponent
-										}
-									}, function(err, res) {
-										reject(err);
-									});
+									users.find({
+											titterID: status.user.id_str
+										})
+										.toArray(function(err, data) {
+											if (err || data.length === 0) {
+												users.insert([{
+													name: name,
+													titterID: status.user.id_str,
+													last_opponent: opponent
+												}], function(err, res) {
+													reject(err);
+												});
+											} else {
+												users.update({
+													name: name
+												}, {
+													$set: {
+														last_opponent: opponent
+													}
+												}, function(err, res) {
+													reject(err);
+												});
+											}
+										});
 								})
 								.catch(function(err) {
 									reject(err);
 								});
 						} else {
-							data[0].last_opponent = opponent;
-							resolve(data[0]);
+							users.find({
+									titterID: status.user.id_str
+								})
+								.toArray(function(err, _data) {
+									if (err || _data.length === 0) {
+										users.insert([{
+											name: name,
+											titterID: status.user.id_str,
+											last_opponent: opponent
+										}], function(err, res) {
+											if (err) {
+												reject(err);
+											} else {
+												resolve({
+													name: name,
+													last_opponent: opponent,
+													titterID: status.user.id_str,
+													access: {
+														token: data[0].token,
+														tokenSecret: data[0].tokenSecret
+													}
+												});
+											}
+										});
+									} else {
+										resolve({
+											name: name,
+											last_opponent: opponent,
+											titterID: status.user.id_str,
+											access: {
+												token: data[0].token,
+												tokenSecret: data[0].tokenSecret
+											}
+										});
+									}
+								});
 						}
 					});
 				}
@@ -104,7 +135,7 @@ var accessRequest = function(args) {
 			if (err) {
 				reject(err);
 			} else {
-				var message = '@' + name + ' ' + chessUrl + '/?start=' + requestToken;
+				var message = '@' + name /*+ ' ' + chessUrl */ + ' 127.0.0.1:5005/?start';
 				titter.reply({
 						user: name,
 						message: message,
@@ -128,49 +159,62 @@ var accessRequest = function(args) {
 	});
 }
 
-exports.setAccessToken = function(args) {
+/*exports.setAccessToken = function(args) {
 	var args = args || {},
-		oauthToken = args.oauthToken || '',
-		oauthVerifier = args.oauthVerifier || '',
+		titterID = args.user || '',
 		db = args.db,
 		users = db.collection('users'),
+		webRunes_Users = db.collection('webRunes_Users'),
 		creds = args.creds || {};
 	return new Promise(function(resolve, reject) {
-		var twitter = TwitterClient.Client(creds);
-		users.find({
-				requestToken: oauthToken
+		console.log(user_id)
+		webRunes_Users.find({
+				titterID: titterID
 			})
 			.toArray(function(err, data) {
-				if (data[0] && data[0].requestTokenSecret) {
-					twitter.getAccessToken(oauthToken, data[0].requestTokenSecret, oauthVerifier, function(error, accessToken, accessTokenSecret, results) {
-						if (error) {
-							reject(error);
-						} else {
-							twitter.verifyCredentials(accessToken, accessTokenSecret, function(error, _data, res) {
+				if (data[0] && data[0].titterID) {
+
+				} else {
+
+				}
+			});
+				var twitter = TwitterClient.Client(creds);
+				users.find({
+						requestToken: oauthToken
+					})
+					.toArray(function(err, data) {
+						if (data[0] && data[0].requestTokenSecret) {
+							twitter.getAccessToken(oauthToken, data[0].requestTokenSecret, oauthVerifier, function(error, accessToken, accessTokenSecret, results) {
 								if (error) {
 									reject(error);
 								} else {
-									users.update({
-										requestToken: oauthToken
-									}, {
-										$set: {
-											accessToken: accessToken,
-											accessTokenSecret: accessTokenSecret
-										}
-									}, function(error, _data) {
+									twitter.verifyCredentials(accessToken, accessTokenSecret, function(error, _data, res) {
 										if (error) {
 											reject(error);
 										} else {
-											data[0].accessToken = accessToken;
-											data[0].accessTokenSecret = accessTokenSecret;
-											resolve(data[0]);
+											users.update({
+												requestToken: oauthToken
+											}, {
+												$set: {
+													accessToken: accessToken,
+													accessTokenSecret: accessTokenSecret
+												}
+											}, function(error, _data) {
+												if (error) {
+													reject(error);
+												} else {
+													data[0].accessToken = accessToken;
+													data[0].accessTokenSecret = accessTokenSecret;
+													resolve(data[0]);
+												}
+											});
 										}
 									});
 								}
 							});
 						}
 					});
-				}
-			});
+		
 	});
 }
+*/
