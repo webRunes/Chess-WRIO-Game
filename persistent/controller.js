@@ -105,6 +105,9 @@ var $ = (function() {
 											status: 0
 										}]
 									}, {
+										name: {
+											$ne: status.user.screen_name
+										},
 										opponent: opponent,
 										$or: [{
 											status: 1
@@ -169,6 +172,7 @@ var $ = (function() {
 												db: $.db
 											})
 											.then(function(res) {
+												console.log("auth: ", res)
 												$.startGameRequest(res)
 													.then(function(args) {
 														resolve(args.message);
@@ -194,15 +198,19 @@ var $ = (function() {
 			var $ = this,
 				args = args || {},
 				name = args.name || '',
-				opponent = args.last_opponent || '';
+				opponent = args.last_opponent || '',
+				titterID = args.titterID || '',
+				access = args.access || {};
+			console.log("start: ", args, access)
 			return new Promise(function(resolve, reject) {
 				var chess = $.db.collection('chess'),
 					users = $.db.collection('users'),
+					webRunes_Users = $.db.collection('webRunes_Users'),
 					inv = new Date()
 					.getTime()
 					.toString(32) + Math.random()
 					.toString(32),
-					message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "/api/game/invite?inv=" + inv;
+					message = '@' + opponent + ", I'm inviting you to play chess, click on " + "127.0.0.1:5005/?start=" + inv;
 				chess.find({
 						name: name,
 						opponent: opponent
@@ -241,33 +249,22 @@ var $ = (function() {
 								});
 							}
 							if (norm) {
-								users.find({
-										name: name
+								titter.reply({
+										user: opponent,
+										access: {
+											accessToken: access.token,
+											accessTokenSecret: access.tokenSecret
+										},
+										message: message
 									})
-									.toArray(function(err, data) {
-										if (data && data[0]) {
-											titter.reply({
-													user: opponent,
-													access: {
-														accessToken: data[0].accessToken,
-														accessTokenSecret: data[0].accessTokenSecret
-													},
-													message: message
-												})
-												.then(function() {
-													resolve({
-														message: 'Start game request from @' + name + ' to @' + opponent
-													});
-												})
-												.catch(function(err) {
-													reject(err);
-												});
-										} else if (err) {
-											reject(err);
-										} else {
-											reject('no user');
-										}
+									.then(function() {
+										resolve({
+											message: 'Start game request from @' + name + ' to @' + opponent
+										});
 									})
+									.catch(function(err) {
+										reject(err);
+									});
 							}
 						} else {
 							reject(err);
@@ -277,22 +274,43 @@ var $ = (function() {
 		},
 		userAccessRequestCallback: function(args) {
 			var $ = this,
-				args = args || {};
+				args = args || {},
+				titterID = args.user,
+				webRunes_Users = $.db.collection('webRunes_Users'),
+				users = $.db.collection('users');
 			return new Promise(function(resolve, reject) {
-				args.db = $.db;
-				args.creds = $.creds;
-				access.setAccessToken(args)
-					.then(function(args) {
-						$.startGameRequest(args)
-							.then(function(res) {
-								resolve(res.message);
-							})
-							.catch(function(err) {
-								reject(err);
-							});
+				users.find({
+						titterID: titterID
 					})
-					.catch(function(err) {
-						reject(err);
+					.toArray(function(err, data) {
+						if (err || data.length === 0) {
+							reject();
+						} else {
+							webRunes_Users.find({
+									titterID: titterID
+								})
+								.toArray(function(err, _data) {
+									if (err || data.length === 0) {
+										reject();
+									} else {
+										$.startGameRequest({
+												name: data[0].name,
+												last_opponent: data[0].last_opponent,
+												titterID: data[0].titterID,
+												access: {
+													token: _data[0].token,
+													tokenSecret: _data[0].tokenSecret
+												}
+											})
+											.then(function(res) {
+												resolve(res.message);
+											})
+											.catch(function(err) {
+												reject(err);
+											});
+									}
+								});
+						}
 					});
 			});
 		},
@@ -321,6 +339,7 @@ var $ = (function() {
 			var $ = this,
 				args = args || {},
 				invite = args.invite,
+				user = args.user,
 				chess = $.db.collection('chess');
 			return new Promise(function(resolve, reject) {
 				chess.find({
@@ -333,14 +352,14 @@ var $ = (function() {
 							access.auth({
 									status: {
 										user: {
-											screen_name: data[0].opponent
+											screen_name: data[0].opponent,
+											id_str: user
 										},
 										id_str: null
 									},
 									opponent: data[0].name,
 									creds: $.creds,
-									db: $.db,
-									is_callback: !0
+									db: $.db
 								})
 								.then(function(res) {
 									$.startGameRequestAccept(res)
@@ -367,8 +386,7 @@ var $ = (function() {
 				args = args || {},
 				name = args.last_opponent || '',
 				opponent = args.name || '',
-				accessToken = args.accessToken || '',
-				accessTokenSecret = args.accessTokenSecret || '';
+				access = args.access || {};
 			return new Promise(function(resolve, reject) {
 				var chess = $.db.collection('chess'),
 					fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -385,17 +403,18 @@ var $ = (function() {
 					if (err) {
 						reject(err);
 					} else {
-						var message = '@' + name + ' Game started! Send \"#chess help\" to get help';
+						var message = '@' + name + ' Game started! Your turn. Send \"#chess help\" to get help';
 						chessboardGenerator.chessboard({
 								fen: fen
 							})
 							.then(function(res) {
+								console.log("ololo")
 								titter.uploadMedia({
 										user: name,
 										filename: res.filename || '',
 										access: {
-											accessToken: accessToken,
-											accessTokenSecret: accessTokenSecret
+											accessToken: access.token,
+											accessTokenSecret: access.tokenSecret
 										}
 									})
 									.then(function(data) {
@@ -407,8 +426,8 @@ var $ = (function() {
 												media_ids: data.media_id_string,
 												message: message,
 												access: {
-													accessToken: accessToken,
-													accessTokenSecret: accessTokenSecret
+													accessToken: access.token,
+													accessTokenSecret: access.tokenSecret
 												}
 											})
 											.then(function() {
@@ -429,8 +448,8 @@ var $ = (function() {
 										user: name,
 										message: message,
 										access: {
-											accessToken: accessToken,
-											accessTokenSecret: accessTokenSecret
+											accessToken: access.token,
+											accessTokenSecret: access.tokenSecret
 										}
 									})
 									.then(function() {
@@ -452,8 +471,9 @@ var $ = (function() {
 				status = args.status || {},
 				move = args.move || {};
 			return new Promise(function(resolve, reject) {
-				var chess = $.db.collection('chess');
-				var users = $.db.collection('users');
+				var chess = $.db.collection('chess'),
+					users = $.db.collection('users'),
+					webRunes_Users = $.db.collection('webRunes_Users');
 				chess.find({
 						$or: [{
 							name: status.user.screen_name
@@ -479,24 +499,24 @@ var $ = (function() {
 										_status = 2;
 									} else if (res.inCheck) {
 										message = move.from + '-' + move.to + '. @' + name + ', it`s your turn. ' + 'Check! ' + $.infoText;
-										_status = 2;
 									}
 									chessboardGenerator.chessboard({
 											fen: res.fen
 										})
 										.then(function(_res) {
 											var filename = _res.filename || '';
-											users.find({
-													name: status.user.screen_name
+											webRunes_Users.find({
+													titterID: status.user.id_str
 												})
 												.toArray(function(err, _data) {
 													if (_data && _data[0]) {
+														console.log(_data[0])
 														titter.uploadMedia({
 																user: status.user.screen_name,
 																filename: filename,
 																access: {
-																	accessToken: _data[0].accessToken,
-																	accessTokenSecret: _data[0].accessTokenSecret
+																	accessToken: _data[0].token,
+																	accessTokenSecret: _data[0].tokenSecret
 																}
 															})
 															.then(function(__data) {
@@ -519,8 +539,8 @@ var $ = (function() {
 																				message: message,
 																				in_reply_to_status_id: status.id_str,
 																				access: {
-																					accessToken: _data[0].accessToken,
-																					accessTokenSecret: _data[0].accessTokenSecret
+																					accessToken: _data[0].token,
+																					accessTokenSecret: _data[0].tokenSecret
 																				}
 																			})
 																			.then(function() {
@@ -550,34 +570,23 @@ var $ = (function() {
 								})
 								.catch(function(err) {
 									if (err.bad) {
-										users.find({
-												name: name
-											})
-											.toArray(function(err, data) {
-												if (data && data[0]) {
-													titter.reply({
-															user: status.user.screen_name,
-															message: '@' + status.user.screen_name + ' ' + move.from + '-' + move.to + '. ' + err.message + ' ' + $.infoText,
-															in_reply_to_status_id: status.id_str,
-															access: {
-																accessToken: data[0].accessToken,
-																accessTokenSecret: data[0].accessTokenSecret
-															}
-														})
-														.then(function() {
-															resolve({
-																message: err.message
-															});
-														})
-														.catch(function(err) {
-															reject(err);
-														});
-												} else if (err) {
-													reject(err);
-												} else {
-													reject('User @' + name + ' not found');
+										titter.reply({
+												user: status.user.screen_name,
+												message: '@' + status.user.screen_name + ' ' + move.from + '-' + move.to + '. ' + err.message + ' ' + $.infoText,
+												in_reply_to_status_id: status.id_str,
+												access: {
+													accessToken: $.creds.access_token,
+													accessTokenSecret: $.creds.access_secret
 												}
 											})
+											.then(function() {
+												resolve({
+													message: err.message
+												});
+											})
+											.catch(function(err) {
+												reject(err);
+											});
 									} else {
 										reject(err);
 									}
@@ -720,8 +729,9 @@ var $ = (function() {
 				args = args || {},
 				status = args.status || {};
 			return new Promise(function(resolve, reject) {
-				var chess = $.db.collection('chess');
-				var users = $.db.collection('users');
+				var chess = $.db.collection('chess'),
+					users = $.db.collection('users'),
+					webRunes_Users = $.db.collection('webRunes_Users');
 				chess.find({
 						$or: [{
 							name: status.user.screen_name,
@@ -757,35 +767,48 @@ var $ = (function() {
 												name: name
 											})
 											.toArray(function(err, _data) {
-												if (data && data[0]) {
-													titter.drawComment({
-															message: message,
-															access: {
-																accessToken: _data[0].accessToken,
-																accessTokenSecret: _data[0].accessTokenSecret
+												if (_data && _data[0]) {
+													console.log('ololo: ', _data[0])
+													webRunes_Users.find({
+															titterID: _data[0].titterID
+														})
+														.toArray(function(err, __data) {
+															if (__data && __data[0]) {
+																console.log(name, __data[0])
+																titter.drawComment({
+																		message: message,
+																		access: {
+																			accessToken: __data[0].token,
+																			accessTokenSecret: __data[0].tokenSecret
+																		}
+																	})
+																	.then(function(___data) {
+																		try {
+																			___data = JSON.parse(___data);
+																		} catch (e) {}
+																		titter.reply({
+																				user: status.user.screen_name,
+																				message: '@' + status.user.screen_name + '. ' + $.infoText,
+																				media_ids: ___data.media_id_string,
+																				in_reply_to_status_id: status.id_str,
+																				access: {
+																					accessToken: __data[0].token,
+																					accessTokenSecret: __data[0].tokenSecret
+																				}
+																			})
+																			.then(function() {})
+																			.catch(function(err) {
+																				reject(err);
+																			});
+																	})
+																	.catch(function(err) {
+																		reject(err);
+																	});
+															} else if (err) {
+																reject(err);
+															} else {
+																reject('User @' + name + ' not found');
 															}
-														})
-														.then(function(__data) {
-															try {
-																__data = JSON.parse(__data);
-															} catch (e) {}
-															titter.reply({
-																	user: status.user.screen_name,
-																	message: '@' + status.user.screen_name + '. ' + $.infoText,
-																	media_ids: __data.media_id_string,
-																	in_reply_to_status_id: status.id_str,
-																	access: {
-																		accessToken: _data[0].accessToken,
-																		accessTokenSecret: _data[0].accessTokenSecret
-																	}
-																})
-																.then(function() {})
-																.catch(function(err) {
-																	reject(err);
-																});
-														})
-														.catch(function(err) {
-															reject(err);
 														});
 												} else if (err) {
 													reject(err);
@@ -793,16 +816,17 @@ var $ = (function() {
 													reject('User @' + name + ' not found');
 												}
 											});
-										users.find({
-												name: status.user.screen_name
+										webRunes_Users.find({
+												titterID: status.user.id_str
 											})
 											.toArray(function(err, _data) {
-												if (data && data[0]) {
+												if (_data && _data[0]) {
+													console.log(status.user.screen_name, _data[0])
 													titter.drawComment({
 															message: _message,
 															access: {
-																accessToken: _data[0].accessToken,
-																accessTokenSecret: _data[0].accessTokenSecret
+																accessToken: _data[0].token,
+																accessTokenSecret: _data[0].tokenSecret
 															}
 														})
 														.then(function(__data) {
@@ -814,8 +838,8 @@ var $ = (function() {
 																	message: '@' + name + '. ' + $.infoText,
 																	media_ids: __data.media_id_string,
 																	access: {
-																		accessToken: _data[0].accessToken,
-																		accessTokenSecret: _data[0].accessTokenSecret
+																		accessToken: _data[0].token,
+																		accessTokenSecret: _data[0].tokenSecret
 																	}
 																})
 																.then(function() {})
