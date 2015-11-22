@@ -13,4 +13,4 @@ COPY . /srv/www/
 
 
 EXPOSE 5005
-CMD cd /srv/www/ && rm -fr node_modules && nodemon server.js
+CMD cd /srv/www/ && rm -fr node_modules && nodemon index.js
