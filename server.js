@@ -6,10 +6,23 @@ var db = require('./utils/db.js');
 var DOMAIN = nconf.get('server:workdomain');
 
 var session = require('express-session');
+var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var cookie_secret = nconf.get("server:cookiesecret");
+var wrioLogin;
 
-app.use('/', express.static(__dirname + '/index.htm'));
+app.use(function(request, response, next) {
+	response.setHeader('Access-Control-Allow-Origin', 'http://wrioos.com');
+	response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+	response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+	response.setHeader('Access-Control-Allow-Credentials', true);
+	next();
+});
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+	extended: true
+}));
 
 var mongoUrl = 'mongodb://' + nconf.get('mongo:user') + ':' + nconf.get('mongo:password') + '@' + nconf.get('mongo:host') + '/' + nconf.get('mongo:dbname');
 db.mongo({
@@ -18,6 +31,7 @@ db.mongo({
 	.then(function(res) {
 		console.log("Connected correctly to database");
 		var db = res.db || {};
+		wrioLogin = require('./wriologin')(db);
 		var server = require('http')
 			.createServer(app)
 			.listen(nconf.get("server:port"), function(req, res) {
@@ -38,11 +52,13 @@ db.mongo({
 					resave: true,
 					cookie: {
 						secure: false,
-						domain: DOMAIN,
+						//domain: DOMAIN,
 						maxAge: 1000 * 60 * 60 * 24 * 30
 					},
 					key: 'sid'
 				}));
+
+				app.use(express.static(__dirname + '/'));
 
 				app.get('/', function(request, response) {
 					var command = '';
@@ -54,21 +70,52 @@ db.mongo({
 					switch (command) {
 						case 'start':
 							{
-								response.render('start.ejs', {
-									"requestToken": request.query[command]
+								wrioLogin.loginWithSessionId(request.sessionID, function(err, res) {
+									if (err) {
+										console.log("User not found:",
+											err);
+										response.render('start.ejs', {
+											"error": "Not logged in",
+											"user": undefined,
+											"invite": undefined
+										});
+									} else {
+										var inv = request.query.start !== "" ? request.query.start : null;
+										response.render('start.ejs', {
+											"user": res,
+											"invite": inv
+										});
+										console.log("User found " + res);
+									}
 								});
 								break;
 							}
 						default:
 							{
-								response.sendFile(__dirname + '/index.htm');
+								response.sendFile(__dirname +
+									'/hub/index.htm');
 							}
 					}
-				})
+				});
+				app.get('/callback', function(request, response) {
+					console.log("Our callback called");
+					response.render('callback', {});
+				});
+
+				app.get('/logoff', function(request, response) {
+					response.clearCookie('sid', {
+						path: '/'
+					});
+					response.status(200)
+						.send("Ok");
+				});
+
 				app.use('/api/', (require('./persistent/route.js'))({
 					db: db
 				}));
+
 				console.log("Application Started!");
+
 				Titter.init({
 					db: db
 				}, function(err) {
