@@ -752,8 +752,7 @@ var $ = (function() {
 					.toArray(function(err, data) {
 						if (data && data[0]) {
 							var name = (data[0].name === status.user.screen_name) ? data[0].opponent : data[0].name,
-								message = 'You gave up, @' + name + ' wins!',
-								_message = 'Your opponent gave up, you wins!';
+								message = 'I gave up. @' + name + ', you win!';
 							chess.update(data[0], {
 									$set: {
 										status: 2
