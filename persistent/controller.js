@@ -210,7 +210,7 @@ var $ = (function() {
 					.getTime()
 					.toString(32) + Math.random()
 					.toString(32),
-					message = '@' + opponent + ", I'm inviting you to play chess, click on " + "127.0.0.1:5005/?start=" + inv;
+					message = '@' + opponent + ", I'm inviting you to play chess, click on " + chessUrl + "?start=" + inv;
 				chess.find({
 						name: name,
 						opponent: opponent
@@ -666,7 +666,7 @@ var $ = (function() {
 						} else {
 							titter.reply({
 									user: status.user.screen_name,
-									message: '@' + status.user.screen_name + ', You are not playing with anyone right now. Send "#chess @user start" to start a new game',
+									message: '@' + status.user.screen_name + ', You are not playing with anyone right now. Send "#chess start @username" to start a new game',
 									access: {
 										accessToken: $.creds.access_token,
 										accessTokenSecret: $.creds.access_secret
@@ -767,7 +767,6 @@ var $ = (function() {
 											})
 											.toArray(function(err, _data) {
 												if (_data && _data[0]) {
-													console.log('ololo: ', _data[0])
 													webRunes_Users.find({
 															titterID: _data[0].titterID
 														})
@@ -815,49 +814,6 @@ var $ = (function() {
 													reject('User @' + name + ' not found');
 												}
 											});
-										webRunes_Users.find({
-												titterID: status.user.id_str
-											})
-											.toArray(function(err, _data) {
-												if (_data && _data[0]) {
-													console.log(status.user.screen_name, _data[0])
-													titter.drawComment({
-															message: _message,
-															access: {
-																accessToken: _data[0].token,
-																accessTokenSecret: _data[0].tokenSecret
-															}
-														})
-														.then(function(__data) {
-															try {
-																__data = JSON.parse(__data);
-															} catch (e) {}
-															titter.reply({
-																	user: name,
-																	message: '@' + name + '. ' + $.infoText,
-																	media_ids: __data.media_id_string,
-																	access: {
-																		accessToken: _data[0].token,
-																		accessTokenSecret: _data[0].tokenSecret
-																	}
-																})
-																.then(function() {})
-																.catch(function(err) {
-																	reject(err);
-																});
-														})
-														.catch(function(err) {
-															reject(err);
-														});
-												} else if (err) {
-													reject(err);
-												} else {
-													reject('User @' + name + ' not found');
-												}
-											});
-										resolve({
-											message: '@' + status.user.screen_name + ' gave up!'
-										})
 									}
 								});
 						} else if (err) {
@@ -865,7 +821,7 @@ var $ = (function() {
 						} else {
 							titter.reply({
 									user: status.user.screen_name,
-									message: '@' + status.user.screen_name + ', You are not playing with anyone right now. Send "#chess @user start" to start a new game',
+									message: '@' + status.user.screen_name + ', You are not playing with anyone right now. Send "#chess start @username" to start a new game',
 									access: {
 										accessToken: $.creds.access_token,
 										accessTokenSecret: $.creds.access_secret
