@@ -135,7 +135,7 @@ var accessRequest = function(args) {
 			if (err) {
 				reject(err);
 			} else {
-				var message = '@' + name /*+ ' ' + chessUrl */ + ' 127.0.0.1:5005/?start';
+				var message = '@' + name + ' ' + chessUrl + '?start';
 				titter.reply({
 						user: name,
 						message: message,
@@ -157,64 +157,4 @@ var accessRequest = function(args) {
 			}
 		});
 	});
-}
-
-/*exports.setAccessToken = function(args) {
-	var args = args || {},
-		titterID = args.user || '',
-		db = args.db,
-		users = db.collection('users'),
-		webRunes_Users = db.collection('webRunes_Users'),
-		creds = args.creds || {};
-	return new Promise(function(resolve, reject) {
-		console.log(user_id)
-		webRunes_Users.find({
-				titterID: titterID
-			})
-			.toArray(function(err, data) {
-				if (data[0] && data[0].titterID) {
-
-				} else {
-
-				}
-			});
-				var twitter = TwitterClient.Client(creds);
-				users.find({
-						requestToken: oauthToken
-					})
-					.toArray(function(err, data) {
-						if (data[0] && data[0].requestTokenSecret) {
-							twitter.getAccessToken(oauthToken, data[0].requestTokenSecret, oauthVerifier, function(error, accessToken, accessTokenSecret, results) {
-								if (error) {
-									reject(error);
-								} else {
-									twitter.verifyCredentials(accessToken, accessTokenSecret, function(error, _data, res) {
-										if (error) {
-											reject(error);
-										} else {
-											users.update({
-												requestToken: oauthToken
-											}, {
-												$set: {
-													accessToken: accessToken,
-													accessTokenSecret: accessTokenSecret
-												}
-											}, function(error, _data) {
-												if (error) {
-													reject(error);
-												} else {
-													data[0].accessToken = accessToken;
-													data[0].accessTokenSecret = accessTokenSecret;
-													resolve(data[0]);
-												}
-											});
-										}
-									});
-								}
-							});
-						}
-					});
-		
-	});
-}
-*/
+};
