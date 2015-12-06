@@ -210,7 +210,7 @@ var $ = (function() {
 					.getTime()
 					.toString(32) + Math.random()
 					.toString(32),
-					message = '@' + opponent + ", I'm inviting you to play chess, click on " + chessUrl + "?start=" + inv;
+					message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "?start=" + inv;
 				chess.find({
 						name: name,
 						opponent: opponent
@@ -752,6 +752,7 @@ var $ = (function() {
 					.toArray(function(err, data) {
 						if (data && data[0]) {
 							var name = (data[0].name === status.user.screen_name) ? data[0].opponent : data[0].name,
+								opponent = (data[0].name === status.user.screen_name) ? data[0].name : data[0].opponent,
 								message = 'I gave up. @' + name + ', you win!';
 							chess.update(data[0], {
 									$set: {
@@ -763,7 +764,7 @@ var $ = (function() {
 										reject(err);
 									} else {
 										users.find({
-												name: name
+												name: opponent
 											})
 											.toArray(function(err, _data) {
 												if (_data && _data[0]) {
@@ -772,7 +773,6 @@ var $ = (function() {
 														})
 														.toArray(function(err, __data) {
 															if (__data && __data[0]) {
-																console.log(name, __data[0])
 																titter.drawComment({
 																		message: message,
 																		access: {
@@ -786,7 +786,7 @@ var $ = (function() {
 																		} catch (e) {}
 																		titter.reply({
 																				user: status.user.screen_name,
-																				message: '@' + status.user.screen_name + '. ' + $.infoText,
+																				message: '@' + name + '. ' + $.infoText,
 																				media_ids: ___data.media_id_string,
 																				in_reply_to_status_id: status.id_str,
 																				access: {
@@ -805,13 +805,13 @@ var $ = (function() {
 															} else if (err) {
 																reject(err);
 															} else {
-																reject('User @' + name + ' not found');
+																reject('User @' + opponent + ' not found');
 															}
 														});
 												} else if (err) {
 													reject(err);
 												} else {
-													reject('User @' + name + ' not found');
+													reject('User @' + opponent + ' not found');
 												}
 											});
 									}
@@ -826,7 +826,7 @@ var $ = (function() {
 										accessToken: $.creds.access_token,
 										accessTokenSecret: $.creds.access_secret
 									}
-								})
+								})	
 								.then(function() {
 									resolve({
 										message: 'no chess'
