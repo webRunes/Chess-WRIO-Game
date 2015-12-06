@@ -210,7 +210,7 @@ var $ = (function() {
 					.getTime()
 					.toString(32) + Math.random()
 					.toString(32),
-					message = '@' + opponent + ", I'm inviting you to play chess, click on " + chessUrl + "?start=" + inv;
+					message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "?start=" + inv;
 				chess.find({
 						name: name,
 						opponent: opponent
@@ -826,7 +826,7 @@ var $ = (function() {
 										accessToken: $.creds.access_token,
 										accessTokenSecret: $.creds.access_secret
 									}
-								})
+								})	
 								.then(function() {
 									resolve({
 										message: 'no chess'
