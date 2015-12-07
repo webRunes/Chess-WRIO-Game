@@ -201,7 +201,6 @@ var $ = (function() {
 				opponent = args.last_opponent || '',
 				titterID = args.titterID || '',
 				access = args.access || {};
-			console.log("start: ", args, access)
 			return new Promise(function(resolve, reject) {
 				var chess = $.db.collection('chess'),
 					users = $.db.collection('users'),
@@ -408,7 +407,6 @@ var $ = (function() {
 								fen: fen
 							})
 							.then(function(res) {
-								console.log("ololo")
 								titter.uploadMedia({
 										user: name,
 										filename: res.filename || '',

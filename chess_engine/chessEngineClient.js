@@ -1,7 +1,8 @@
 "use strict";
 
-var chess = require('./main.js')
-	.Chess();
+var Chess = require('./main')
+	.Chess;
+var chess = new Chess();
 var Promise = require('es6-promise')
 	.Promise;
 
