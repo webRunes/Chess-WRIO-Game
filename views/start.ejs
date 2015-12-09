@@ -5,6 +5,13 @@
 	<link href="http://webrunes.github.io/Default-WRIO-Theme/css/webrunes.css" rel="stylesheet">
 	<script type="text/javascript">
 
+		function getCookie(name) {
+            var matches = document.cookie.match(new RegExp(
+                    "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+        }
+
 		function getLoginUrl() {
 			var host = window.location.host;
 			host = host.replace('chess.', 'login.');
@@ -29,7 +36,6 @@
 
 		function start(user) {
 			<% if (invite) { %>
-				console.log(1)
 				$.ajax({
 					type: "POST",
 					url: "/api/invite_callback",
@@ -38,10 +44,10 @@
 						invite: "<%= invite %>"
 					}
 				}).success(function () {
+					success();
 					window.close();
 				});
 			<% } else { %>
-				console.log(2)
 				$.ajax({
 					type: "POST",
 					url: "/api/access_callback",
@@ -49,20 +55,31 @@
 						user: user
 					}
 				}).success(function () {
+					success();
 					window.close();
 				});
 			<% } %>
+		}
+
+		function success() {
+			document.querySelector('.form-group').innerHTML = "<h4>Game started, you can return to Twitter</h4>";
 		}
 
 		function setWRIOAuthData() {
 			location.reload();
 		}
 
+
 		$(document).ready(function() {
 			if (window.localStorage['draft']) {
 				window.localStorage.removeItem('draft');
 				<% if (user) { %>
 					start("<%= user.titterID %>");
+				<% } %>
+			} else {
+				<% if (!user) { %>
+					saveDraft();
+					openAuthPopup();
 				<% } %>
 			}
 		});
@@ -73,9 +90,21 @@
 		<% if (user) { %>
 			<h4><%= user.lastName %></h4>
 			<button type="button" class="btn btn-default" onclick="logoff();">Log out</button>
-			<button type="button" class="btn btn-primary" onclick="start('<%= user.titterID %>');"><span class="glyphicon glyphicon-ok"></span>Start</button>
+			<button type="button" class="btn btn-primary" onclick="start('<%= user.titterID %>');"><span class="glyphicon glyphicon-ok"></span>
+				<% if (invite) { %>
+					Accept
+				<% } else { %>
+					Start
+				<% } %>
+			</button>
 		<% } else { %>
-			<button type="button" onclick="saveDraft();openAuthPopup();" class="btn btn-primary" style="margin-top: 10px"><span class="glyphicon glyphicon-ok"></span>Login and start</button>
+			<button type="button" onclick="saveDraft();openAuthPopup();" class="btn btn-primary" style="margin-top: 10px"><span class="glyphicon glyphicon-ok"></span>
+				<% if (invite) { %>
+					Login and accept
+				<% } else { %>
+					Login and start
+				<% } %>
+			</button>
 		<% } %>
 	</div>
 
