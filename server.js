@@ -52,11 +52,12 @@ db.mongo({
 					resave: true,
 					cookie: {
 						secure: false,
-						//domain: DOMAIN,
+						domain: DOMAIN,
 						maxAge: 1000 * 60 * 60 * 24 * 30
 					},
 					key: 'sid'
 				}));
+
 
 				app.use(express.static(__dirname + '/'));
 
@@ -97,6 +98,7 @@ db.mongo({
 							}
 					}
 				});
+
 				app.get('/callback', function(request, response) {
 					console.log("Our callback called");
 					response.render('callback', {});

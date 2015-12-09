@@ -135,7 +135,7 @@ var accessRequest = function(args) {
 			if (err) {
 				reject(err);
 			} else {
-				var message = '@' + name + ' ' + chessUrl + '?start';
+				var message = '@' + name + ', click ' + chessUrl + '?start to start the game';
 				titter.reply({
 						user: name,
 						message: message,
