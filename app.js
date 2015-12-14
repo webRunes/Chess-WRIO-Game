@@ -45,13 +45,13 @@ var $ = (function() {
 							statuses.map(function(status) {
 								var query = {
 									start: status.text.match(/start/),
-									chess: status.text.match(/\#chess/),
+									chess: status.text.match(/\#chess-local/),
 									opponent: status.text.match(/\@([^\s]+)/i),
 									move: status.text.match(/([a-hA-H][0-9])\-([a-hA-H][0-9])/i),
 									command: status.text.match(/(refresh|help|end)/i)
 								};
 								if (query.chess && query.start && query.opponent) {
-									if (status.text.replace(/(\#chess|start|\@[^\s]+|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
+									if (status.text.replace(/(\#chess-local|start|\@[^\s]+|[^\w\sА-Яа-яЁё]|_|\s)/ig, '') === "") {
 										console.log(status.user.screen_name, query.opponent)
 										Chess.startGame({
 												status: status,

@@ -2,7 +2,6 @@
 
 var express = require('express');
 var TwitterClient = require("../utils/twitterClient");
-var chessController = new(require('./controller.js'))();
 var fs = require("fs");
 
 var $ = function(args, cb) {
@@ -11,11 +10,8 @@ var $ = function(args, cb) {
 		args = args || {},
 		db = args.db || {},
 		cb = cb || function() {},
-		router = express.Router();
-
-	chessController.init({
-		db: db
-	});
+		router = express.Router(),
+		chessController = args.chessController || {};
 
 	router.post('/access_callback', function(req, res) {
 		var user = req.body.user || '';

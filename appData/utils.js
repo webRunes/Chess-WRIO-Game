@@ -1,10 +1,11 @@
-var nconf = require('../wrio_nconf.js');
-var MongoClient = require('mongodb')
-	.MongoClient;
+"use strict";
+var nconf = require('../wrio_nconf.js'),
+	MongoClient = require('mongodb')
+	.MongoClient,
 
-var APP_NAME = 'chess';
-var db;
-var webrunes_AppData;
+	APP_NAME = 'chess',
+	db,
+	webrunes_AppData;
 
 exports.init = function(args, cb) {
 	var cb = cb || function() {},

@@ -15,7 +15,7 @@
 		function getLoginUrl() {
 			var host = window.location.host;
 			host = host.replace('chess.', 'login.');
-			return "//" + host;
+			return 'http://127.0.0.1:5000';//"//" + host;
 		}
 
 		function openAuthPopup() {
@@ -35,7 +35,7 @@
 		}
 
 		function start(user) {
-			<% if (invite) { %>
+			<% if (invite && invite !== "") { %>
 				$.ajax({
 					type: "POST",
 					url: "/api/invite_callback",
@@ -71,17 +71,24 @@
 
 
 		$(document).ready(function() {
-			if (window.localStorage['draft']) {
-				window.localStorage.removeItem('draft');
-				<% if (user) { %>
-					start("<%= user.titterID %>");
+			<% if (!alien) { %>
+				document.querySelector('.form-group').innerHTML = "<h4>This link is for the player @<%= user.username %></h4>";
+			<% } else { %>
+				<% if (expired) { %>
+					document.querySelector('.form-group').innerHTML = "<h4>Expired link</h4>";
+				<% } else { %>
+					if (window.localStorage['draft']) {
+						window.localStorage.removeItem('draft');
+						<% if (user) { %>
+							start("<%= user.titterID %>");
+						<% } %>
+					} else {
+						<% if (!user) { %>
+							openAuthPopup();
+						<% } %>
+					}
 				<% } %>
-			} else {
-				<% if (!user) { %>
-					saveDraft();
-					openAuthPopup();
-				<% } %>
-			}
+			<% } %>
 		});
 	</script>
 </head>

@@ -1,10 +1,14 @@
-var TwitterClient = require("../utils/twitterClient");
-var titter = require("./titterClient");
-var nconf = require("../wrio_nconf.js");
-var Promise = require('es6-promise')
-	.Promise;
+"use strict";
 
-var chessUrl = 'chess' + nconf.get("server:workdomain");
+var TwitterClient = require("../utils/twitterClient"),
+	titter = require("./titterClient"),
+	nconf = require("../wrio_nconf.js"),
+	secure = require("./secure.js"),
+	Promise = require('es6-promise')
+	.Promise,
+
+	//var chessUrl = 'chess' + nconf.get("server:workdomain");
+	chessUrl = '127.0.0.1:5005'; //'chess' + nconf.get("server:workdomain");
 
 exports.auth = function(args) {
 	var args = args || {},
@@ -48,6 +52,7 @@ exports.auth = function(args) {
 									status: status,
 									name: name,
 									creds: creds,
+									db: db,
 									is_callback: args.is_callback
 								})
 								.then(function(res) {
@@ -127,6 +132,7 @@ var accessRequest = function(args) {
 	var args = args || {},
 		status = args.status || {},
 		name = args.name || '',
+		db = args.db || {},
 		creds = args.creds || {};
 	return new Promise(function(resolve, reject) {
 		var twitter = args.is_callback ? TwitterClient._Client(creds) : TwitterClient.Client(creds),
@@ -135,24 +141,39 @@ var accessRequest = function(args) {
 			if (err) {
 				reject(err);
 			} else {
-				var message = '@' + name + ', click ' + chessUrl + '?start to start the game';
-				titter.reply({
-						user: name,
-						message: message,
-						access: {
-							accessToken: creds.access_token,
-							accessTokenSecret: creds.access_secret
-						},
-						_: _
-					})
-					.then(function() {
-						resolve({
-							requestToken: requestToken,
-							requestTokenSecret: requestTokenSecret
+				secure.generateToken()
+					.then(function(res) {
+						var uuids = db.collection('chess_uuids'),
+							uuid = res.uuid;
+							console.log(typeof uuid)
+						uuids.insert([{
+							uuid: uuid,
+							titterID: status.user.id_str
+						}], function(err, data) {
+							if (!err) {
+								var message = '@' + name + ', click ' + chessUrl + '?start=' + uuid + ' to start the game';
+								titter.reply({
+										user: name,
+										message: message,
+										access: {
+											accessToken: creds.access_token,
+											accessTokenSecret: creds.access_secret
+										},
+										_: _
+									})
+									.then(function() {
+										resolve({
+											requestToken: requestToken,
+											requestTokenSecret: requestTokenSecret
+										});
+									})
+									.catch(function(err) {
+										reject(err);
+									});
+							} else {
+								reject(err);
+							}
 						});
-					})
-					.catch(function(err) {
-						reject(err);
 					});
 			}
 		});

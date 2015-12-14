@@ -1,12 +1,13 @@
 "use strict";
 
-var titter = require("../utils/titterClient");
-var Promise = require('es6-promise')
-	.Promise;
-var access = require('../utils/access.js');
-var nconf = require("../wrio_nconf.js");
-var chessClient = require('../chess_engine/chessEngineClient.js');
-var chessboardGenerator = require('../chess_engine/chessboardGenerator.js');
+var titter = require("../utils/titterClient"),
+	Promise = require('es6-promise')
+	.Promise,
+	access = require('../utils/access.js'),
+	nconf = require("../wrio_nconf.js"),
+	secure = require("../utils/secure.js"),
+	chessClient = require('../chess_engine/chessEngineClient.js'),
+	chessboardGenerator = require('../chess_engine/chessboardGenerator.js');
 
 var $ = (function() {
 
@@ -15,7 +16,7 @@ var $ = (function() {
 	$.prototype = {
 		db: {},
 		infoText: 'Visit http://chess.wrioos.com for info.',
-		chessUrl: 'chess' + nconf.get("server:workdomain"),
+		chessUrl: '127.0.0.1:5005', //'chess' + nconf.get("server:workdomain"),
 		creds: {
 			consumer_key: nconf.get("api:twitterLogin:consumerKey"),
 			consumer_secret: nconf.get("api:twitterLogin:consumerSecret"),
@@ -34,6 +35,50 @@ var $ = (function() {
 				} else {
 					reject();
 				};
+			});
+		},
+		getUsernameByID: function(args) {
+			var $ = this,
+				args = args || {},
+				titterID = args.titterID || "",
+				users = $.db.collection('users');
+			return new Promise(function(resolve, reject) {
+				users.find({
+						titterID: titterID
+					})
+					.toArray(function(err, data) {
+						if (data && data[0]) {
+							resolve({
+								username: data[0].name
+							});
+						} else {
+							reject({
+								message: 'Undefined user.'
+							});
+						}
+					});
+			});
+		},
+		getParamsByUUID: function(args) {
+			var $ = this,
+				args = args || {},
+				uuid = args.uuid || "",
+				uuids = $.db.collection('chess_uuids');
+			return new Promise(function(resolve, reject) {
+				console.log(uuid)
+				uuids.find({
+						uuid: uuid
+					})
+					.toArray(function(err, data) {
+						console.log(err, data)
+						if (data && data[0]) {
+							resolve(data[0]);
+						} else {
+							reject({
+								message: 'Invalid uuid.'
+							});
+						}
+					});
 			});
 		},
 		startGame: function(args) {
@@ -172,7 +217,6 @@ var $ = (function() {
 												db: $.db
 											})
 											.then(function(res) {
-												console.log("auth: ", res)
 												$.startGameRequest(res)
 													.then(function(args) {
 														resolve(args.message);
@@ -204,71 +248,89 @@ var $ = (function() {
 			return new Promise(function(resolve, reject) {
 				var chess = $.db.collection('chess'),
 					users = $.db.collection('users'),
-					webRunes_Users = $.db.collection('webRunes_Users'),
-					inv = new Date()
-					.getTime()
-					.toString(32) + Math.random()
-					.toString(32),
-					message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "?start=" + inv;
-				chess.find({
-						name: name,
-						opponent: opponent
-					})
-					.toArray(function(err, data) {
-						if (!err) {
-							var norm = !0;
-							if (data.length === 0) {
-								chess.insert([{
-									invite: inv,
-									name: name,
-									opponent: opponent,
-									status: 0,
-									fen: '',
-									last_move: {}
-								}], function(err, res) {
-									if (err) {
-										reject(err);
-										norm = !1;
-									}
-								});
-							} else {
-								chess.update({
-									name: name,
-									opponent: opponent
-								}, {
-									$set: {
+					webRunes_Users = $.db.collection('webRunes_Users');
+				secure.generateToken(function(invite) {
+					chess.find({
+							name: name,
+							opponent: opponent
+						})
+						.toArray(function(err, data) {
+							if (!err) {
+								var norm = !0;
+								if (data.length === 0) {
+									chess.insert([{
+										invite: invite,
+										name: name,
+										opponent: opponent,
 										status: 0,
-										invite: inv
-									}
-								}, function(err, data) {
-									if (err) {
-										reject(err);
-										norm = !1;
-									}
-								});
-							}
-							if (norm) {
-								titter.reply({
-										user: opponent,
-										access: {
-											accessToken: access.token,
-											accessTokenSecret: access.tokenSecret
-										},
-										message: message
-									})
-									.then(function() {
-										resolve({
-											message: 'Start game request from @' + name + ' to @' + opponent
-										});
-									})
-									.catch(function(err) {
-										reject(err);
+										fen: '',
+										last_move: {}
+									}], function(err, res) {
+										if (err) {
+											reject(err);
+											norm = !1;
+										}
 									});
+								} else {
+									chess.update({
+										name: name,
+										opponent: opponent
+									}, {
+										$set: {
+											status: 0,
+											invite: invite
+										}
+									}, function(err, data) {
+										if (err) {
+											reject(err);
+											norm = !1;
+										}
+									});
+								}
+								if (norm) {
+									users.find({
+											name: opponent
+										})
+										.toArray(function(err, data) {
+											if (data && data[0]) {
+												secure.generateToken(function(uuid) {
+													var uuids = db.collection('chess_uuids');
+													uuids.insert([{
+														uuid: uuid,
+														titterID: data[0].titterID,
+														invite: invite
+													}], function(err, data) {
+														var message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "?start=" + uuid;
+														titter.reply({
+																user: opponent,
+																access: {
+																	accessToken: access.token,
+																	accessTokenSecret: access.tokenSecret
+																},
+																message: message
+															})
+															.then(function() {
+																resolve({
+																	message: 'Start game request from @' + name + ' to @' + opponent
+																});
+															})
+															.catch(function(err) {
+																reject(err);
+															});
+													});
+												});
+											} else {
+												reject({
+													message: 'Undefined user.'
+												});
+											}
+										});
+								}
+							} else {
+								reject(err);
 							}
-						} else {
-							reject(err);
-						}
-					});
+						});
+				});
 			});
 		},
 		userAccessRequestCallback: function(args) {
@@ -824,7 +886,7 @@ var $ = (function() {
 										accessToken: $.creds.access_token,
 										accessTokenSecret: $.creds.access_secret
 									}
-								})	
+								})
 								.then(function() {
 									resolve({
 										message: 'no chess'
