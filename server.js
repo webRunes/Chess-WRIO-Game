@@ -86,7 +86,7 @@ db.mongo({
 											"error": "Not logged in",
 											"user": undefined,
 											"invite": undefined,
-											"alien": !1,
+											"alien": !0,
 											"expired": !1
 										});
 									} else {
@@ -102,21 +102,30 @@ db.mongo({
 														titterID: titterID
 													})
 													.then(function(_data) {
-														res.username = _data.username;
-														response.render('start.ejs', {
-															"user": res,
-															"invite": invite,
-															"alien": res.titterID === titterID,
-															"expired": !1
-														});
-														console.log("User found " + res);
+														if (res.titterID === titterID) {
+															response.render('start.ejs', {
+																"user": res,
+																"invite": invite,
+																"alien": !0,
+																"expired": !1
+															});
+															console.log("User found " + res);
+														} else {
+															res.username = _data.username;
+															response.render('start.ejs', {
+																"user": res,
+																"invite": undefined,
+																"alien": !1,
+																"expired": !1
+															});
+														}
 													})
 													.catch(function(err) {
 														console.log("err: ", err);
 														response.render('start.ejs', {
 															"user": undefined,
 															"invite": undefined,
-															"alien": !1,
+															"alien": !0,
 															"expired": !1
 														});
 														console.log("User found " + res, "no titterID");
@@ -126,8 +135,8 @@ db.mongo({
 												console.log("err: ", err)
 												response.render('start.ejs', {
 													"user": res,
-													"invite": invite,
-													"alien": !1,
+													"invite": undefined,
+													"alien": !0,
 													"expired": !0
 												});
 												console.log("User found " + res, "invalid or expired token");

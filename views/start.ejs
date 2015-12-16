@@ -46,6 +46,9 @@
 				}).success(function () {
 					success();
 					window.close();
+				}).fail(function() {
+					document.querySelector('.note').innerHTML = "<h4>Expired link</h4>";
+					document.querySelector('.ok').disabled = "disabled";
 				});
 			<% } else { %>
 				$.ajax({
@@ -62,7 +65,8 @@
 		}
 
 		function success() {
-			document.querySelector('.form-group').innerHTML = "<h4>Game started, you can return to Twitter</h4>";
+			document.querySelector('.note').innerHTML = "<h4>Game started, you can return to Twitter</h4>";
+			document.querySelector('.ok').disabled = "disabled";
 		}
 
 		function setWRIOAuthData() {
@@ -71,11 +75,18 @@
 
 
 		$(document).ready(function() {
+			var username = "another player";
+			<% if (user && user.username) { %>
+				username = "player @<%= user.username %>";
+			<% } %>
+
 			<% if (!alien) { %>
-				document.querySelector('.form-group').innerHTML = "<h4>This link is for the player @<%= user.username %></h4>";
+				document.querySelector('.note').innerHTML = "<h4>This link is for the " + username + "</h4>";
+				document.querySelector('.ok').disabled = "disabled";
 			<% } else { %>
 				<% if (expired) { %>
-					document.querySelector('.form-group').innerHTML = "<h4>Expired link</h4>";
+					document.querySelector('.note').innerHTML = "<h4>Expired link</h4>";
+					document.querySelector('.ok').disabled = "disabled";
 				<% } else { %>
 					if (window.localStorage['draft']) {
 						window.localStorage.removeItem('draft');
@@ -84,6 +95,7 @@
 						<% } %>
 					} else {
 						<% if (!user) { %>
+							saveDraft();
 							openAuthPopup();
 						<% } %>
 					}
@@ -97,7 +109,7 @@
 		<% if (user) { %>
 			<h4><%= user.lastName %></h4>
 			<button type="button" class="btn btn-default" onclick="logoff();">Log out</button>
-			<button type="button" class="btn btn-primary" onclick="start('<%= user.titterID %>');"><span class="glyphicon glyphicon-ok"></span>
+			<button type="button" class="btn btn-primary ok" onclick="start('<%= user.titterID %>');"><span class="glyphicon glyphicon-ok"></span>
 				<% if (invite) { %>
 					Accept
 				<% } else { %>
@@ -113,6 +125,7 @@
 				<% } %>
 			</button>
 		<% } %>
+		<div class="note"></div>
 	</div>
 
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>

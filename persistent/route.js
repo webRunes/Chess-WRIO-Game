@@ -29,7 +29,6 @@ var $ = function(args, cb) {
 	});
 
 	router.post('/invite_callback', function(req, res) {
-		console.log(req.body);
 		chessController.startGameRequestCallback({
 				user: req.body.user,
 				invite: req.body.invite

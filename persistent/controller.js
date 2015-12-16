@@ -65,7 +65,6 @@ var $ = (function() {
 				uuid = args.uuid || "",
 				uuids = $.db.collection('chess_uuids');
 			return new Promise(function(resolve, reject) {
-				console.log(uuid)
 				uuids.find({
 						uuid: uuid
 					})
@@ -164,44 +163,50 @@ var $ = (function() {
 								.toArray(function(err, data) {
 									if (data && data[0]) {
 										var users = $.db.collection('users');
+										var webRunes_Users = $.db.collection('webRunes_Users');
 										var _opponent = data[0].name === opponent ? data[0].opponent : data[0].name;
 										users.find({
 												name: opponent
 											})
 											.toArray(function(err, data) {
 												if (data && data[0]) {
-													titter.drawComment({
-															message: '@' + status.user.screen_name + ', sorry, I`m already playing with @' + _opponent,
-															access: {
-																accessToken: data[0].accessToken,
-																accessTokenSecret: data[0].accessTokenSecret
-															}
+													webRunes_Users.find({
+															titterID: data[0].titterID
 														})
-														.then(function(__data) {
-															try {
-																__data = JSON.parse(__data);
-															} catch (e) {}
-															titter.reply({
-																	user: opponent,
-																	message: '@' + status.user.screen_name,
-																	media_ids: __data.media_id_string,
-																	in_reply_to_status_id: status.id_str,
+														.toArray(function(err, _data) {
+															titter.drawComment({
+																	message: '@' + status.user.screen_name + ', sorry, I`m already playing with @' + _opponent,
 																	access: {
-																		accessToken: data[0].accessToken,
-																		accessTokenSecret: data[0].accessTokenSecret
+																		accessToken: _data[0].token,
+																		accessTokenSecret: _data[0].tokenSecret
 																	}
 																})
-																.then(function() {
-																	resolve({
-																		message: 'Opponent is busy!'
-																	})
+																.then(function(__data) {
+																	try {
+																		__data = JSON.parse(__data);
+																	} catch (e) {}
+																	titter.reply({
+																			user: opponent,
+																			message: '@' + status.user.screen_name,
+																			media_ids: __data.media_id_string,
+																			in_reply_to_status_id: status.id_str,
+																			access: {
+																				accessToken: _data[0].token,
+																				accessTokenSecret: _data[0].tokenSecret
+																			}
+																		})
+																		.then(function() {
+																			resolve({
+																				message: 'Opponent is busy!'
+																			})
+																		})
+																		.catch(function(err) {
+																			reject(err);
+																		});
 																})
 																.catch(function(err) {
 																	reject(err);
 																});
-														})
-														.catch(function(err) {
-															reject(err);
 														});
 												} else {
 													resolve({
@@ -249,88 +254,90 @@ var $ = (function() {
 				var chess = $.db.collection('chess'),
 					users = $.db.collection('users'),
 					webRunes_Users = $.db.collection('webRunes_Users');
-				secure.generateToken(function(invite) {
-					chess.find({
-							name: name,
-							opponent: opponent
-						})
-						.toArray(function(err, data) {
-							if (!err) {
-								var norm = !0;
-								if (data.length === 0) {
-									chess.insert([{
-										invite: invite,
-										name: name,
-										opponent: opponent,
-										status: 0,
-										fen: '',
-										last_move: {}
-									}], function(err, res) {
-										if (err) {
-											reject(err);
-											norm = !1;
-										}
-									});
-								} else {
-									chess.update({
-										name: name,
-										opponent: opponent
-									}, {
-										$set: {
+				secure.generateToken()
+					.then(function(invite) {
+						chess.find({
+								name: name,
+								opponent: opponent
+							})
+							.toArray(function(err, data) {
+								if (!err) {
+									var norm = !0;
+									if (data.length === 0) {
+										chess.insert([{
+											invite: invite.token,
+											name: name,
+											opponent: opponent,
 											status: 0,
-											invite: invite
-										}
-									}, function(err, data) {
-										if (err) {
-											reject(err);
-											norm = !1;
-										}
-									});
-								}
-								if (norm) {
-									users.find({
-											name: opponent
-										})
-										.toArray(function(err, data) {
-											if (data && data[0]) {
-												secure.generateToken(function(uuid) {
-													var uuids = db.collection('chess_uuids');
-													uuids.insert([{
-														uuid: uuid,
-														titterID: data[0].titterID,
-														invite: invite
-													}], function(err, data) {
-														var message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "?start=" + uuid;
-														titter.reply({
-																user: opponent,
-																access: {
-																	accessToken: access.token,
-																	accessTokenSecret: access.tokenSecret
-																},
-																message: message
-															})
-															.then(function() {
-																resolve({
-																	message: 'Start game request from @' + name + ' to @' + opponent
-																});
-															})
-															.catch(function(err) {
-																reject(err);
-															});
-													});
-												});
-											} else {
-												reject({
-													message: 'Undefined user.'
-												});
+											fen: '',
+											last_move: {}
+										}], function(err, res) {
+											if (err) {
+												reject(err);
+												norm = !1;
 											}
 										});
+									} else {
+										chess.update({
+											name: name,
+											opponent: opponent
+										}, {
+											$set: {
+												status: 0,
+												invite: invite.token
+											}
+										}, function(err, data) {
+											if (err) {
+												reject(err);
+												norm = !1;
+											}
+										});
+									}
+									if (norm) {
+										users.find({
+												name: opponent
+											})
+											.toArray(function(err, data) {
+												if (data && data[0]) {
+													secure.generateToken()
+														.then(function(uuid) {
+															var uuids = $.db.collection('chess_uuids');
+															uuids.insert([{
+																uuid: uuid.token,
+																titterID: data[0].titterID,
+																invite: invite.token
+															}], function(err, data) {
+																var message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "?start=" + uuid.token;
+																titter.reply({
+																		user: opponent,
+																		access: {
+																			accessToken: access.token,
+																			accessTokenSecret: access.tokenSecret
+																		},
+																		message: message
+																	})
+																	.then(function() {
+																		resolve({
+																			message: 'Start game request from @' + name + ' to @' + opponent
+																		});
+																	})
+																	.catch(function(err) {
+																		reject(err);
+																	});
+															});
+														});
+												} else {
+													reject({
+														message: 'Undefined user.'
+													});
+												}
+											});
+									}
+								} else {
+									reject(err);
 								}
-							} else {
-								reject(err);
-							}
-						});
-				});
+							});
+					});
 			});
 		},
 		userAccessRequestCallback: function(args) {
@@ -354,6 +361,7 @@ var $ = (function() {
 									if (err || data.length === 0) {
 										reject();
 									} else {
+										console.log(2)
 										$.startGameRequest({
 												name: data[0].name,
 												last_opponent: data[0].last_opponent,
@@ -364,6 +372,7 @@ var $ = (function() {
 												}
 											})
 											.then(function(res) {
+												console.log(3)
 												resolve(res.message);
 											})
 											.catch(function(err) {

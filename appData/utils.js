@@ -1,4 +1,3 @@
-"use strict";
 var nconf = require('../wrio_nconf.js'),
 	MongoClient = require('mongodb')
 	.MongoClient,

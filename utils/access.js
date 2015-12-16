@@ -144,7 +144,7 @@ var accessRequest = function(args) {
 				secure.generateToken()
 					.then(function(res) {
 						var uuids = db.collection('chess_uuids'),
-							uuid = res.uuid;
+							uuid = res.token;
 							console.log(typeof uuid)
 						uuids.insert([{
 							uuid: uuid,
