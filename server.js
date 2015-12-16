@@ -1,15 +1,19 @@
-var Titter = new(require('./app.js'))();
-var nconf = require('./wrio_nconf.js');
-var express = require('express');
-var app = express();
-var db = require('./utils/db.js');
-var DOMAIN = nconf.get('server:workdomain');
+"use strict";
 
-var session = require('express-session');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var cookie_secret = nconf.get("server:cookiesecret");
-var wrioLogin;
+var Titter = new(require('./app.js'))(),
+	nconf = require('./wrio_nconf.js'),
+	express = require('express'),
+	app = express(),
+	db = require('./utils/db.js'),
+	secure = require("./utils/secure.js"),
+	DOMAIN = nconf.get('server:workdomain'),
+
+	session = require('express-session'),
+	bodyParser = require('body-parser'),
+	cookieParser = require('cookie-parser'),
+	cookie_secret = nconf.get("server:cookiesecret"),
+	wrioLogin,
+	chessController = new(require('./persistent/controller.js'))();
 
 app.use(function(request, response, next) {
 	response.setHeader('Access-Control-Allow-Origin', 'http://wrioos.com');
@@ -58,6 +62,9 @@ db.mongo({
 					key: 'sid'
 				}));
 
+				chessController.init({
+					db: db
+				});
 
 				app.use(express.static(__dirname + '/'));
 
@@ -78,15 +85,71 @@ db.mongo({
 										response.render('start.ejs', {
 											"error": "Not logged in",
 											"user": undefined,
-											"invite": undefined
+											"verified": undefined,
+											"uuid": undefined,
+											"invite": undefined,
+											"alien": !0,
+											"expired": !1
 										});
 									} else {
-										var inv = request.query.start !== "" ? request.query.start : null;
-										response.render('start.ejs', {
-											"user": res,
-											"invite": inv
-										});
-										console.log("User found " + res);
+										var uuid = request.query.start || "";
+										chessController.getParamsByUUID({
+												uuid: uuid
+											})
+											.then(function(data) {
+												var titterID = data.titterID || "",
+													invite = data.invite || "";
+												chessController.getUsernameByID({
+														titterID: titterID
+													})
+													.then(function(_data) {
+														if (res.titterID === titterID) {
+															response.render('start.ejs', {
+																"user": res,
+																"verified": _data.verified,
+																"invite": invite,
+																"uuid": uuid,
+																"alien": !0,
+																"expired": !1
+															});
+															console.log("User found " + res);
+														} else {
+															res.username = _data.username;
+															response.render('start.ejs', {
+																"user": res,
+																"verified": !0,
+																"invite": undefined,
+																"uuid": undefined,
+																"alien": !1,
+																"expired": !1
+															});
+														}
+													})
+													.catch(function(err) {
+														console.log("err: ", err);
+														response.render('start.ejs', {
+															"user": undefined,
+															"verified": !0,
+															"invite": undefined,
+															"uuid": undefined,
+															"alien": !0,
+															"expired": !1
+														});
+														console.log("User found " + res, "no titterID");
+													});
+											})
+											.catch(function(err) {
+												console.log("err: ", err)
+												response.render('start.ejs', {
+													"user": res,
+													"verified": !0,
+													"invite": undefined,
+													"uuid": undefined,
+													"alien": !0,
+													"expired": !0
+												});
+												console.log("User found " + res, "invalid or expired token");
+											});
 									}
 								});
 								break;
@@ -106,14 +169,16 @@ db.mongo({
 
 				app.get('/logoff', function(request, response) {
 					response.clearCookie('sid', {
-						path: '/'
+						'path': '/',
+						'domain': DOMAIN
 					});
 					response.status(200)
 						.send("Ok");
 				});
 
 				app.use('/api/', (require('./persistent/route.js'))({
-					db: db
+					db: db,
+					chessController: chessController
 				}));
 
 				console.log("Application Started!");

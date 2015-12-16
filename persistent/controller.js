@@ -1,12 +1,13 @@
 "use strict";
 
-var titter = require("../utils/titterClient");
-var Promise = require('es6-promise')
-	.Promise;
-var access = require('../utils/access.js');
-var nconf = require("../wrio_nconf.js");
-var chessClient = require('../chess_engine/chessEngineClient.js');
-var chessboardGenerator = require('../chess_engine/chessboardGenerator.js');
+var titter = require("../utils/titterClient"),
+	Promise = require('es6-promise')
+	.Promise,
+	access = require('../utils/access.js'),
+	nconf = require("../wrio_nconf.js"),
+	secure = require("../utils/secure.js"),
+	chessClient = require('../chess_engine/chessEngineClient.js'),
+	chessboardGenerator = require('../chess_engine/chessboardGenerator.js');
 
 var $ = (function() {
 
@@ -34,6 +35,60 @@ var $ = (function() {
 				} else {
 					reject();
 				};
+			});
+		},
+		getUsernameByID: function(args) {
+			var $ = this,
+				args = args || {},
+				titterID = args.titterID || "",
+				users = $.db.collection('users');
+			return new Promise(function(resolve, reject) {
+				users.find({
+						titterID: titterID
+					})
+					.toArray(function(err, data) {
+						if (data && data[0]) {
+							access.verify({
+									titterID: titterID,
+									db: $.db,
+									creds: $.creds
+								})
+								.then(function(res) {
+									console.log('err: ', res)
+									resolve({
+										username: data[0].name,
+										verified: !res
+									});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
+						} else {
+							reject({
+								message: 'Undefined user.'
+							});
+						}
+					});
+			});
+		},
+		getParamsByUUID: function(args) {
+			var $ = this,
+				args = args || {},
+				uuid = args.uuid || "",
+				uuids = $.db.collection('chess_uuids');
+			return new Promise(function(resolve, reject) {
+				uuids.find({
+						uuid: uuid
+					})
+					.toArray(function(err, data) {
+						if (data && data[0]) {
+							resolve(data[0]);
+						} else {
+							reject({
+								message: 'Invalid uuid.'
+							});
+						}
+					});
 			});
 		},
 		startGame: function(args) {
@@ -119,44 +174,50 @@ var $ = (function() {
 								.toArray(function(err, data) {
 									if (data && data[0]) {
 										var users = $.db.collection('users');
+										var webRunes_Users = $.db.collection('webRunes_Users');
 										var _opponent = data[0].name === opponent ? data[0].opponent : data[0].name;
 										users.find({
 												name: opponent
 											})
 											.toArray(function(err, data) {
 												if (data && data[0]) {
-													titter.drawComment({
-															message: '@' + status.user.screen_name + ', sorry, I`m already playing with @' + _opponent,
-															access: {
-																accessToken: data[0].accessToken,
-																accessTokenSecret: data[0].accessTokenSecret
-															}
+													webRunes_Users.find({
+															titterID: data[0].titterID
 														})
-														.then(function(__data) {
-															try {
-																__data = JSON.parse(__data);
-															} catch (e) {}
-															titter.reply({
-																	user: opponent,
-																	message: '@' + status.user.screen_name,
-																	media_ids: __data.media_id_string,
-																	in_reply_to_status_id: status.id_str,
+														.toArray(function(err, _data) {
+															titter.drawComment({
+																	message: '@' + status.user.screen_name + ', sorry, I`m already playing with @' + _opponent,
 																	access: {
-																		accessToken: data[0].accessToken,
-																		accessTokenSecret: data[0].accessTokenSecret
+																		accessToken: _data[0].token,
+																		accessTokenSecret: _data[0].tokenSecret
 																	}
 																})
-																.then(function() {
-																	resolve({
-																		message: 'Opponent is busy!'
-																	})
+																.then(function(__data) {
+																	try {
+																		__data = JSON.parse(__data);
+																	} catch (e) {}
+																	titter.reply({
+																			user: opponent,
+																			message: '@' + status.user.screen_name,
+																			media_ids: __data.media_id_string,
+																			in_reply_to_status_id: status.id_str,
+																			access: {
+																				accessToken: _data[0].token,
+																				accessTokenSecret: _data[0].tokenSecret
+																			}
+																		})
+																		.then(function() {
+																			resolve({
+																				message: 'Opponent is busy!'
+																			})
+																		})
+																		.catch(function(err) {
+																			reject(err);
+																		});
 																})
 																.catch(function(err) {
 																	reject(err);
 																});
-														})
-														.catch(function(err) {
-															reject(err);
 														});
 												} else {
 													resolve({
@@ -172,7 +233,6 @@ var $ = (function() {
 												db: $.db
 											})
 											.then(function(res) {
-												console.log("auth: ", res)
 												$.startGameRequest(res)
 													.then(function(args) {
 														resolve(args.message);
@@ -204,77 +264,98 @@ var $ = (function() {
 			return new Promise(function(resolve, reject) {
 				var chess = $.db.collection('chess'),
 					users = $.db.collection('users'),
-					webRunes_Users = $.db.collection('webRunes_Users'),
-					inv = new Date()
-					.getTime()
-					.toString(32) + Math.random()
-					.toString(32),
-					message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "?start=" + inv;
-				chess.find({
-						name: name,
-						opponent: opponent
-					})
-					.toArray(function(err, data) {
-						if (!err) {
-							var norm = !0;
-							if (data.length === 0) {
-								chess.insert([{
-									invite: inv,
-									name: name,
-									opponent: opponent,
-									status: 0,
-									fen: '',
-									last_move: {}
-								}], function(err, res) {
-									if (err) {
-										reject(err);
-										norm = !1;
-									}
-								});
-							} else {
-								chess.update({
-									name: name,
-									opponent: opponent
-								}, {
-									$set: {
-										status: 0,
-										invite: inv
-									}
-								}, function(err, data) {
-									if (err) {
-										reject(err);
-										norm = !1;
-									}
-								});
-							}
-							if (norm) {
-								titter.reply({
-										user: opponent,
-										access: {
-											accessToken: access.token,
-											accessTokenSecret: access.tokenSecret
-										},
-										message: message
-									})
-									.then(function() {
-										resolve({
-											message: 'Start game request from @' + name + ' to @' + opponent
+					webRunes_Users = $.db.collection('webRunes_Users');
+				secure.generateToken()
+					.then(function(invite) {
+						chess.find({
+								name: name,
+								opponent: opponent
+							})
+							.toArray(function(err, data) {
+								if (!err) {
+									var norm = !0;
+									if (data.length === 0) {
+										chess.insert([{
+											invite: invite.token,
+											name: name,
+											opponent: opponent,
+											status: 0,
+											fen: '',
+											last_move: {}
+										}], function(err, res) {
+											if (err) {
+												reject(err);
+												norm = !1;
+											}
 										});
-									})
-									.catch(function(err) {
-										reject(err);
-									});
-							}
-						} else {
-							reject(err);
-						}
+									} else {
+										chess.update({
+											name: name,
+											opponent: opponent
+										}, {
+											$set: {
+												status: 0,
+												invite: invite.token
+											}
+										}, function(err, data) {
+											if (err) {
+												reject(err);
+												norm = !1;
+											}
+										});
+									}
+									if (norm) {
+										users.find({
+												name: opponent
+											})
+											.toArray(function(err, data) {
+												if (data && data[0]) {
+													secure.generateToken()
+														.then(function(uuid) {
+															var uuids = $.db.collection('chess_uuids');
+															uuids.insert([{
+																uuid: uuid.token,
+																titterID: data[0].titterID,
+																invite: invite.token
+															}], function(err, data) {
+																var message = '@' + opponent + ", I'm inviting you to play chess, click on " + $.chessUrl + "?start=" + uuid.token;
+																titter.reply({
+																		user: opponent,
+																		access: {
+																			accessToken: access.token,
+																			accessTokenSecret: access.tokenSecret
+																		},
+																		message: message
+																	})
+																	.then(function() {
+																		resolve({
+																			message: 'Start game request from @' + name + ' to @' + opponent
+																		});
+																	})
+																	.catch(function(err) {
+																		reject(err);
+																	});
+															});
+														});
+												} else {
+													reject({
+														message: 'Undefined user.'
+													});
+												}
+											});
+									}
+								} else {
+									reject(err);
+								}
+							});
 					});
 			});
 		},
 		userAccessRequestCallback: function(args) {
 			var $ = this,
 				args = args || {},
-				titterID = args.user,
+				titterID = args.user || "",
+				uuid = args.uuid,
 				webRunes_Users = $.db.collection('webRunes_Users'),
 				users = $.db.collection('users');
 			return new Promise(function(resolve, reject) {
@@ -305,6 +386,7 @@ var $ = (function() {
 												resolve(res.message);
 											})
 											.catch(function(err) {
+												console.log(err)
 												reject(err);
 											});
 									}
@@ -338,6 +420,7 @@ var $ = (function() {
 			var $ = this,
 				args = args || {},
 				invite = args.invite,
+				uuid = args.uuid,
 				user = args.user,
 				chess = $.db.collection('chess');
 			return new Promise(function(resolve, reject) {
@@ -395,8 +478,7 @@ var $ = (function() {
 				}, {
 					$set: {
 						status: 1,
-						fen: fen,
-						invite: ''
+						fen: fen
 					}
 				}, function(err, res) {
 					if (err) {
@@ -508,7 +590,6 @@ var $ = (function() {
 												})
 												.toArray(function(err, _data) {
 													if (_data && _data[0]) {
-														console.log(_data[0])
 														titter.uploadMedia({
 																user: status.user.screen_name,
 																filename: filename,
@@ -824,7 +905,7 @@ var $ = (function() {
 										accessToken: $.creds.access_token,
 										accessTokenSecret: $.creds.access_secret
 									}
-								})	
+								})
 								.then(function() {
 									resolve({
 										message: 'no chess'
