@@ -7,8 +7,7 @@ var TwitterClient = require("../utils/twitterClient"),
 	Promise = require('es6-promise')
 	.Promise,
 
-	//var chessUrl = 'chess' + nconf.get("server:workdomain");
-	chessUrl = '127.0.0.1:5005'; //'chess' + nconf.get("server:workdomain");
+	chessUrl = 'chess' + nconf.get("server:workdomain");
 
 exports.auth = function(args) {
 	var args = args || {},
