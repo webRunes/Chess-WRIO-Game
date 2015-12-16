@@ -15,10 +15,33 @@ var $ = function(args, cb) {
 
 	router.post('/access_callback', function(req, res) {
 		var user = req.body.user || '';
+		var uuid = req.body.uuid;
 		chessController.userAccessRequestCallback({
-				user: user
+				user: user,
+				uuid: uuid
 			})
 			.then(function() {
+				if (uuid) {
+					chessController.getParamsByUUID({
+							uuid: uuid
+						})
+						.then(function(data) {
+							chessController.getUsernameByID({
+									titterID: data.titterID
+								})
+								.then(function(_data) {
+									if (_data.verified) {
+										db.collection("chess_uuids")
+											.deleteOne({
+												uuid: uuid
+											}, function(err, res) {
+												console.log(err, res)
+											});
+									}
+								});
+						});
+				}
+
 				res.status(200)
 					.send("ok");
 			})
@@ -29,12 +52,34 @@ var $ = function(args, cb) {
 	});
 
 	router.post('/invite_callback', function(req, res) {
+		var uuid = req.body.uuid,
+			chess = db.collection('chess');
 		chessController.startGameRequestCallback({
 				user: req.body.user,
-				invite: req.body.invite
+				invite: req.body.invite,
+				uuid: uuid
 			})
 			.then(function(data) {
-				console.log(data);
+				if (uuid) {
+					chessController.getParamsByUUID({
+							uuid: uuid
+						})
+						.then(function(data) {
+							chess.find({
+									invite: data.invite
+								})
+								.toArray(function(err, _data) {
+									if (_data.status === 1) {
+										db.collection("chess_uuids")
+											.deleteOne({
+												uuid: uuid
+											}, function(err, res) {
+												console.log(err, res)
+											});
+									}
+								});
+						});
+				}
 				res.status(200)
 					.send("ok");
 			})

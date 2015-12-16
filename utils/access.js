@@ -9,6 +9,31 @@ var TwitterClient = require("../utils/twitterClient"),
 
 	chessUrl = 'chess' + nconf.get("server:workdomain");
 
+exports.verify = function(args) {
+	var args = args || {},
+		titterID = args.titterID || "",
+		db = args.db || {},
+		creds = args.creds || {},
+		webRunes_Users = db.collection('webRunes_Users'),
+		twitter = TwitterClient.Client(creds);
+	return new Promise(function(resolve, reject) {
+		webRunes_Users.find({
+				titterID: titterID
+			})
+			.toArray(function(err, data) {
+				if (data && data[0]) {
+					twitter.verifyCredentials(data[0].token, data[0].tokenSecret, function(error, _data, res) {
+						resolve(error)
+					});
+				} else {
+					reject({
+						message: "no user"
+					});
+				}
+			});
+	});
+}
+
 exports.auth = function(args) {
 	var args = args || {},
 		status = args.status || {},
@@ -29,6 +54,7 @@ exports.auth = function(args) {
 							status: status,
 							name: name,
 							creds: creds,
+							db: db,
 							is_callback: args.is_callback
 						})
 						.then(function(res) {
@@ -144,7 +170,6 @@ var accessRequest = function(args) {
 					.then(function(res) {
 						var uuids = db.collection('chess_uuids'),
 							uuid = res.token;
-							console.log(typeof uuid)
 						uuids.insert([{
 							uuid: uuid,
 							titterID: status.user.id_str

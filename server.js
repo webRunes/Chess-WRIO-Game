@@ -85,13 +85,14 @@ db.mongo({
 										response.render('start.ejs', {
 											"error": "Not logged in",
 											"user": undefined,
+											"verified": undefined,
+											"uuid": undefined,
 											"invite": undefined,
 											"alien": !0,
 											"expired": !1
 										});
 									} else {
 										var uuid = request.query.start || "";
-										console.log(uuid, typeof uuid)
 										chessController.getParamsByUUID({
 												uuid: uuid
 											})
@@ -105,7 +106,9 @@ db.mongo({
 														if (res.titterID === titterID) {
 															response.render('start.ejs', {
 																"user": res,
+																"verified": _data.verified,
 																"invite": invite,
+																"uuid": uuid,
 																"alien": !0,
 																"expired": !1
 															});
@@ -114,7 +117,9 @@ db.mongo({
 															res.username = _data.username;
 															response.render('start.ejs', {
 																"user": res,
+																"verified": !0,
 																"invite": undefined,
+																"uuid": undefined,
 																"alien": !1,
 																"expired": !1
 															});
@@ -124,7 +129,9 @@ db.mongo({
 														console.log("err: ", err);
 														response.render('start.ejs', {
 															"user": undefined,
+															"verified": !0,
 															"invite": undefined,
+															"uuid": undefined,
 															"alien": !0,
 															"expired": !1
 														});
@@ -135,7 +142,9 @@ db.mongo({
 												console.log("err: ", err)
 												response.render('start.ejs', {
 													"user": res,
+													"verified": !0,
 													"invite": undefined,
+													"uuid": undefined,
 													"alien": !0,
 													"expired": !0
 												});

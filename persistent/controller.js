@@ -48,9 +48,21 @@ var $ = (function() {
 					})
 					.toArray(function(err, data) {
 						if (data && data[0]) {
-							resolve({
-								username: data[0].name
-							});
+							access.verify({
+									titterID: titterID,
+									db: $.db,
+									creds: $.creds
+								})
+								.then(function(res) {
+									console.log('err: ', res)
+									resolve({
+										username: data[0].name,
+										verified: !res
+									});
+								})
+								.catch(function(err) {
+									reject(err);
+								});
 						} else {
 							reject({
 								message: 'Undefined user.'
@@ -69,7 +81,6 @@ var $ = (function() {
 						uuid: uuid
 					})
 					.toArray(function(err, data) {
-						console.log(err, data)
 						if (data && data[0]) {
 							resolve(data[0]);
 						} else {
@@ -343,7 +354,8 @@ var $ = (function() {
 		userAccessRequestCallback: function(args) {
 			var $ = this,
 				args = args || {},
-				titterID = args.user,
+				titterID = args.user || "",
+				uuid = args.uuid,
 				webRunes_Users = $.db.collection('webRunes_Users'),
 				users = $.db.collection('users');
 			return new Promise(function(resolve, reject) {
@@ -361,7 +373,6 @@ var $ = (function() {
 									if (err || data.length === 0) {
 										reject();
 									} else {
-										console.log(2)
 										$.startGameRequest({
 												name: data[0].name,
 												last_opponent: data[0].last_opponent,
@@ -372,10 +383,10 @@ var $ = (function() {
 												}
 											})
 											.then(function(res) {
-												console.log(3)
 												resolve(res.message);
 											})
 											.catch(function(err) {
+												console.log(err)
 												reject(err);
 											});
 									}
@@ -409,6 +420,7 @@ var $ = (function() {
 			var $ = this,
 				args = args || {},
 				invite = args.invite,
+				uuid = args.uuid,
 				user = args.user,
 				chess = $.db.collection('chess');
 			return new Promise(function(resolve, reject) {
@@ -466,8 +478,7 @@ var $ = (function() {
 				}, {
 					$set: {
 						status: 1,
-						fen: fen,
-						invite: ''
+						fen: fen
 					}
 				}, function(err, res) {
 					if (err) {
@@ -579,7 +590,6 @@ var $ = (function() {
 												})
 												.toArray(function(err, _data) {
 													if (_data && _data[0]) {
-														console.log(_data[0])
 														titter.uploadMedia({
 																user: status.user.screen_name,
 																filename: filename,
