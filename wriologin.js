@@ -13,7 +13,7 @@ var $ = function(db) {
 		console.log("Deserializing user by id=" + id);
 		webrunesUsers.findOne(ObjectID(id), function(err, user) {
 			if (err || !user) {
-				console.log("User not found", err);
+				console.log("deserialize:User not found", err);
 				done(err);
 				return;
 			}
@@ -34,8 +34,8 @@ var $ = function(db) {
 			"_id": ssid
 		}, function(err, session) {
 			if (err || !session) {
-				console.log("User not found", err);
-				done(err);
+				console.log("loginWithSessionId:User not found", err);
+				done(err || !0);
 				return;
 			}
 
