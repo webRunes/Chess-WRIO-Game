@@ -125,7 +125,10 @@ exports.chessboard = function(args) {
 				});
 			})
 			.catch(function(err) {
-				reject(err);
+				reject({
+					status: 400,
+					err: err
+				});
 			});
 	});
 }

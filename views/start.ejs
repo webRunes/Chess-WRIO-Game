@@ -26,6 +26,7 @@
 			var host = window.location.host;
 			host = host.replace('chess.', 'login.');
 			return "//" + host;
+//			return "http://127.0.0.1:5000";
 		}
 
 		function openAuthPopup() {
@@ -61,7 +62,6 @@
 					document.querySelector('.note').innerHTML = "<h4>Expired link</h4>";
 				});
 			<% } else { %>
-				console.log(1)
 				$.ajax({
 					type: "POST",
 					url: "/api/access_callback",
