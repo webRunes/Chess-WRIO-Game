@@ -21,29 +21,28 @@ var $ = function(args, cb) {
 				uuid: uuid
 			})
 			.then(function() {
-				if (uuid) {
-					chessController.getParamsByUUID({
-							uuid: uuid
-						})
-						.then(function(data) {
-							chessController.getUsernameByID({
-									titterID: data.titterID
-								})
-								.then(function(_data) {
-									if (_data.verified) {
-										db.collection("chess_uuids")
-											.deleteOne({
-												uuid: uuid
-											}, function(err, res) {
-												console.log(err, res)
-											});
-									}
-								});
-						});
-				}
-
 				res.status(200)
 					.send("ok");
+				if (uuid) {
+					return chessController.getParamsByUUID({
+						uuid: uuid
+					});
+				}
+			})
+			.then(function(data) {
+				return chessController.getUsernameByID({
+					titterID: data.titterID
+				});
+			})
+			.then(function(_data) {
+				if (_data.verified) {
+					db.collection("chess_uuids")
+						.deleteOne({
+							uuid: uuid
+						}, function(err, res) {
+							console.log(err, res)
+						});
+				}
 			})
 			.catch(function(err) {
 				res.status(400)
@@ -60,28 +59,29 @@ var $ = function(args, cb) {
 				uuid: uuid
 			})
 			.then(function(data) {
-				if (uuid) {
-					chessController.getParamsByUUID({
-							uuid: uuid
-						})
-						.then(function(data) {
-							chess.find({
-									invite: data.invite
-								})
-								.toArray(function(err, _data) {
-									if (_data.status === 1) {
-										db.collection("chess_uuids")
-											.deleteOne({
-												uuid: uuid
-											}, function(err, res) {
-												console.log(err, res)
-											});
-									}
-								});
-						});
-				}
 				res.status(200)
 					.send("ok");
+				if (uuid) {
+					return chessController.getParamsByUUID({
+						uuid: uuid
+					});
+				}
+			})
+			.then(function(data) {
+				chess.find({
+						invite: data.invite
+					})
+					.toArray(function(err, _data) {
+						console.log(_data[0].status)
+						if (_data && _data[0] && _data[0].status && _data[0].status === 1) {
+							db.collection("chess_uuids")
+								.deleteOne({
+									uuid: uuid
+								}, function(err, res) {
+									console.log(err)
+								});
+						}
+					})
 			})
 			.catch(function(err) {
 				console.log("route error: ", err)

@@ -92,41 +92,46 @@ db.mongo({
 											"expired": !1
 										});
 									} else {
-										var uuid = request.query.start || "";
+										var uuid = request.query.start || "",
+											invite = "",
+											titterID = "";
 										chessController.getParamsByUUID({
 												uuid: uuid
 											})
 											.then(function(data) {
-												var titterID = data.titterID || "",
-													invite = data.invite || "";
-												chessController.getUsernameByID({
-														titterID: titterID
-													})
-													.then(function(_data) {
-														if (res.titterID === titterID) {
-															response.render('start.ejs', {
-																"user": res,
-																"verified": _data.verified,
-																"invite": invite,
-																"uuid": uuid,
-																"alien": !0,
-																"expired": !1
-															});
-															console.log("User found " + res);
-														} else {
-															res.username = _data.username;
-															response.render('start.ejs', {
-																"user": res,
-																"verified": !0,
-																"invite": undefined,
-																"uuid": undefined,
-																"alien": !1,
-																"expired": !1
-															});
-														}
-													})
-													.catch(function(err) {
-														console.log("err: ", err);
+												titterID = data.titterID || "";
+												invite = data.invite || "";
+												return chessController.getUsernameByID({
+													titterID: titterID
+												});
+											})
+											.then(function(_data) {
+												if (res.titterID === titterID) {
+													response.render('start.ejs', {
+														"user": res,
+														"verified": _data.verified,
+														"invite": invite,
+														"uuid": uuid,
+														"alien": !0,
+														"expired": !1
+													});
+													console.log("User found " + res);
+												} else {
+													res.username = _data.username;
+													response.render('start.ejs', {
+														"user": res,
+														"verified": !0,
+														"invite": undefined,
+														"uuid": undefined,
+														"alien": !1,
+														"expired": !1
+													});
+												}
+											})
+											.catch(function(err) {
+												console.log(err)
+												if (err.status) {
+													if (err.status === 400) {
 														response.render('start.ejs', {
 															"user": undefined,
 															"verified": !0,
@@ -136,19 +141,18 @@ db.mongo({
 															"expired": !1
 														});
 														console.log("User found " + res, "no titterID");
-													});
-											})
-											.catch(function(err) {
-												console.log("err: ", err)
-												response.render('start.ejs', {
-													"user": res,
-													"verified": !0,
-													"invite": undefined,
-													"uuid": undefined,
-													"alien": !0,
-													"expired": !0
-												});
-												console.log("User found " + res, "invalid or expired token");
+													} else if (err.status === 401) {
+														response.render('start.ejs', {
+															"user": res,
+															"verified": !0,
+															"invite": undefined,
+															"uuid": undefined,
+															"alien": !0,
+															"expired": !0
+														});
+														console.log("User found " + res, "invalid or expired token");
+													}
+												}
 											});
 									}
 								});

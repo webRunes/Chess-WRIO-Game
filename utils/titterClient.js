@@ -15,6 +15,7 @@ var twconf = {
 };
 
 var titterUrl = 'titter' + nconf.get("server:workdomain");
+//var titterUrl = '127.0.0.1:5003';
 
 exports.search = function(args) {
 	var args = args || {},

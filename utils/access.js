@@ -8,6 +8,7 @@ var TwitterClient = require("../utils/twitterClient"),
 	.Promise,
 
 	chessUrl = 'chess' + nconf.get("server:workdomain");
+//	chessUrl = '127.0.0.1:5005';
 
 exports.verify = function(args) {
 	var args = args || {},
