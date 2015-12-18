@@ -12,7 +12,6 @@ var Titter = new(require('./app.js'))(),
 	bodyParser = require('body-parser'),
 	cookieParser = require('cookie-parser'),
 	cookie_secret = nconf.get("server:cookiesecret"),
-	wrioLogin,
 	chessController = new(require('./persistent/controller.js'))();
 
 app.use(function(request, response, next) {
@@ -35,7 +34,6 @@ db.mongo({
 	.then(function(res) {
 		console.log("Connected correctly to database");
 		var db = res.db || {};
-		wrioLogin = require('./wriologin')(db);
 		var server = require('http')
 			.createServer(app)
 			.listen(nconf.get("server:port"), function(req, res) {
@@ -49,7 +47,6 @@ db.mongo({
 					db: db
 				});
 				app.use(session({
-
 					secret: cookie_secret,
 					saveUninitialized: true,
 					store: sessionStore,
@@ -78,84 +75,8 @@ db.mongo({
 					switch (command) {
 						case 'start':
 							{
-								wrioLogin.loginWithSessionId(request.sessionID, function(err, res) {
-									if (err) {
-										console.log("User not found:",
-											err);
-										response.render('start.ejs', {
-											"error": "Not logged in",
-											"user": undefined,
-											"verified": undefined,
-											"uuid": undefined,
-											"invite": undefined,
-											"alien": !0,
-											"expired": !1
-										});
-									} else {
-										var uuid = request.query.start || "",
-											invite = "",
-											titterID = "";
-										chessController.getParamsByUUID({
-												uuid: uuid
-											})
-											.then(function(data) {
-												titterID = data.titterID || "";
-												invite = data.invite || "";
-												return chessController.getUsernameByID({
-													titterID: titterID
-												});
-											})
-											.then(function(_data) {
-												if (res.titterID === titterID) {
-													response.render('start.ejs', {
-														"user": res,
-														"verified": _data.verified,
-														"invite": invite,
-														"uuid": uuid,
-														"alien": !0,
-														"expired": !1
-													});
-													console.log("User found " + res);
-												} else {
-													res.username = _data.username;
-													response.render('start.ejs', {
-														"user": res,
-														"verified": !0,
-														"invite": undefined,
-														"uuid": undefined,
-														"alien": !1,
-														"expired": !1
-													});
-												}
-											})
-											.catch(function(err) {
-												console.log(err)
-												if (err.status) {
-													if (err.status === 400) {
-														response.render('start.ejs', {
-															"user": undefined,
-															"verified": !0,
-															"invite": undefined,
-															"uuid": undefined,
-															"alien": !0,
-															"expired": !1
-														});
-														console.log("User found " + res, "no titterID");
-													} else if (err.status === 401) {
-														response.render('start.ejs', {
-															"user": res,
-															"verified": !0,
-															"invite": undefined,
-															"uuid": undefined,
-															"alien": !0,
-															"expired": !0
-														});
-														console.log("User found " + res, "invalid or expired token");
-													}
-												}
-											});
-									}
-								});
+								response.sendFile(__dirname +
+									'/views/start.htm');
 								break;
 							}
 						default:
@@ -172,7 +93,7 @@ db.mongo({
 				});
 
 				app.get('/logoff', function(request, response) {
-					response.clearCookie('sid', {
+					response.clearCookie('sid', 0, {
 						'path': '/',
 						'domain': DOMAIN
 					});
@@ -184,6 +105,23 @@ db.mongo({
 					db: db,
 					chessController: chessController
 				}));
+
+				app.get('/data', function(req, res) {
+					var uuid = req.query.uuid;
+					chessController.getViewData({
+							uuid: uuid,
+							session: req.sessionID
+						})
+						.then(function(data) {
+							res.status(200)
+								.json(data);
+						})
+						.catch(function(err) {
+							console.log("route error: ", err || "err")
+							res.status(400)
+								.send(err || "err");
+						});
+				});
 
 				console.log("Application Started!");
 
