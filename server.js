@@ -66,25 +66,13 @@ db.mongo({
 				app.use(express.static(__dirname + '/'));
 
 				app.get('/', function(request, response) {
-					var command = '';
-					for (var i in request.query) {
-						if (command === '') {
-							command = i;
-						}
-					}
-					switch (command) {
-						case 'start':
-							{
-								response.sendFile(__dirname +
-									'/views/start.htm');
-								break;
-							}
-						default:
-							{
-								response.sendFile(__dirname +
-									'/hub/index.htm');
-							}
-					}
+					response.sendFile(__dirname +
+						'/hub/index.htm');
+				});
+
+				app.get('/start', function(request, response) {
+					response.sendFile(__dirname +
+						'/views/start.htm');
 				});
 
 				app.get('/callback', function(request, response) {

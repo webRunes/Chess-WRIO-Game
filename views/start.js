@@ -7,7 +7,7 @@ var getUUID = function(strQuery) {
 		objRes[arrMatch[1]] = arrMatch[2];
 		arrMatch = strPattern.exec(strSearch);
 	}
-	return objRes['start'];
+	return objRes['uuid'];
 };
 
 function getLoginUrl() {
