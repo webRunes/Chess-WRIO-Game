@@ -4,7 +4,7 @@ var nconf = require('../wrio_nconf.js'),
 
 	APP_NAME = 'chess',
 	db,
-	webrunes_AppData;
+	webRunes_AppData;
 
 exports.init = function(args, cb) {
 	var cb = cb || function() {},

@@ -1,5 +1,3 @@
-"use strict";
-
 var titter = require("../utils/titterClient"),
 	Promise = require('es6-promise')
 	.Promise,

@@ -1,3 +1,6 @@
+var React = require('react');
+var ReactDOM = require('react-dom');
+
 var getUUID = function(strQuery) {
 	var strSearch = strQuery.substr(1),
 		strPattern = /([^=]+)=([^&]+)&?/ig,
@@ -68,10 +71,10 @@ var Start = React.createClass({
 						invite: that.state.invite
 					}
 				}).success(function () {
-					that.state.footer = "Game started, you can retun to Twitter";
+					that.state.footer = "Game started, you can return to Twitter";
 					window.close();
 				}).fail(function() {
-					that.state.footer = "Expired link";
+					that.state.footer = "Link Expired";
 				});
 			} else {
 				$.ajax({
@@ -82,7 +85,7 @@ var Start = React.createClass({
 						user: that.state.user.titterID
 					}
 				}).success(function () {
-					that.state.footer = "Game started, you can retun to Twitter";
+					that.state.footer = "Game started, you can return to Twitter";
 					window.close();
 				});
 			}
@@ -98,7 +101,7 @@ var Start = React.createClass({
 	render: function() {
 		var button = this.state.invite ? "Accept" : "Start";
 		var _button = this.state.invite ? "Login & Accept" : "Login & Start";
-		this.state.footer = this.state.alien ? "This link is for the player @" + this.state.user.username : (this.state.expired ? "Expired link" : "...please wait");
+		this.state.footer = this.state.alien ? "This link is for the player @" + this.state.user.username : (this.state.expired ? "Link Expired" : "...please wait");
 
 		function logoff() {
 			$.ajax('/logoff').success(function () {
