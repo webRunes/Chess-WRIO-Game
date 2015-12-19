@@ -90,25 +90,6 @@ var $ = function(args, cb) {
 			});
 	});
 
-	router.get('/game/invite/access_callback', function(req, res) {
-		var oauthToken = req.query.oauth_token,
-			oauthVerifier = req.query.oauth_verifier;
-		chessController.opponentAccessRequestCallback({
-				oauthToken: oauthToken,
-				oauthVerifier: oauthVerifier,
-			})
-			.then(function(data) {
-				console.log(data)
-				res.status(200)
-					.send('<script>window.close()</script>');
-			})
-			.catch(function(err) {
-				console.log(err)
-				res.status(400)
-					.send(err);
-			});
-	});
-
 	return router;
 }
 
