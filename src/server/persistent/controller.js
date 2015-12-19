@@ -1,5 +1,3 @@
-"use strict";
-
 var titter = require("../utils/titterClient"),
 	Promise = require('es6-promise')
 	.Promise,
@@ -7,6 +5,7 @@ var titter = require("../utils/titterClient"),
 	nconf = require("../wrio_nconf.js"),
 	secure = require("../utils/secure.js"),
 	chessClient = require('../chess_engine/chessEngineClient.js'),
+	wrioLogin,
 	chessboardGenerator = require('../chess_engine/chessboardGenerator.js');
 
 var $ = (function() {
@@ -91,6 +90,54 @@ var $ = (function() {
 							});
 						}
 					});
+			});
+		},
+		getViewData: function(args) {
+			var $ = this,
+				args = args || {},
+				uuid = args.uuid || "",
+				session = args.session,
+				uuids = $.db.collection('chess_uuids');
+			return new Promise(function(resolve, reject) {
+				wrioLogin = require('../wriologin')($.db);
+				var _data = {};
+				wrioLogin.loginWithSessionId(session, function(err, res) {
+					if (err || !res) {
+						resolve();
+					} else {
+						uuids.find({
+								uuid: uuid
+							})
+							.toArray(function(err, data) {
+								if (data && data[0]) {
+									$.getUsernameByID({
+											titterID: data[0].titterID
+										})
+										.then(function(_res) {
+											res.username = _res.username;
+											if (_res.verified) {
+												resolve({
+													user: res,
+													alien: !(res.titterID === data[0].titterID),
+													invite: data[0].invite,
+													uuid: uuid
+												});
+											} else {
+												resolve();
+											}
+										})
+										.catch(function(err) {
+											console.log(err)
+										});
+								} else {
+									resolve({
+										user: res,
+										expired: !0
+									});
+								}
+							});
+					}
+				});
 			});
 		},
 		startGame: function(args) {
