@@ -1,7 +1,6 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
+import React from 'react';
 
-var getUUID = function(strQuery) {
+function getUUID(strQuery) {
 	var strSearch = strQuery.substr(1),
 		strPattern = /([^=]+)=([^&]+)&?/ig,
 		arrMatch = strPattern.exec(strSearch),
@@ -16,19 +15,23 @@ var getUUID = function(strQuery) {
 function getLoginUrl() {
 	var host = window.location.host;
 	host = host.replace('chess.', 'login.');
-	return "//" + host;
+//	return "//" + host;
 //	return "http://127.0.0.1:5000";
+	return "http://login.wrioos.com";
 };
 
-var Start = React.createClass({
+class Start extends React.Component {
 
-	getInitialState: function() {
-		return ({
+	constructor(props) {
+		super(props);
+
+		this.state = {
 			user: !1
-		});
-	},
+		}
+	}
 
-	componentWillMount: function() {
+
+	componentWillMount() {
 		var that = this;
 		$.ajax({
 				type: "GET",
@@ -50,13 +53,13 @@ var Start = React.createClass({
 					user: null
 				});
 			});
-	},
+	}
 
-	componentDidUpdate: function() {
+	componentDidUpdate() {
 		var that = this;
 		function openAuthPopup() {
 			var loginUrl = getLoginUrl();
-			var callbackurl = "//" + window.location.host + '/callback'
+			var callbackurl = '//' + window.location.host + '/callback'
 			var newWin = window.open(loginUrl + '/authapi?callback=' + encodeURIComponent(callbackurl), "Login", "height=500,width=700");
 		}
 
@@ -96,9 +99,9 @@ var Start = React.createClass({
 		} else if (!this.state.user) {
 			openAuthPopup();
 		}
-	},
+	}
 
-	render: function() {
+	render() {
 		var button = this.state.invite ? "Accept" : "Start";
 		var _button = this.state.invite ? "Login & Accept" : "Login & Start";
 		this.state.footer = this.state.alien ? "This link is for the player @" + this.state.user.username : (this.state.expired ? "Link Expired" : "...please wait");
@@ -128,6 +131,6 @@ var Start = React.createClass({
 		)
 	}
 
-});
+}
 
-ReactDOM.render( < Start / > , document.getElementById('startholder'));
+React.render( < Start / > , document.getElementById('startholder'));
