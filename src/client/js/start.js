@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDom from 'react-dom';
 
 function getUUID(strQuery) {
 	var strSearch = strQuery.substr(1),
@@ -15,9 +16,8 @@ function getUUID(strQuery) {
 function getLoginUrl() {
 	var host = window.location.host;
 	host = host.replace('chess.', 'login.');
-//	return "//" + host;
+	return "//" + host;
 //	return "http://127.0.0.1:5000";
-	return "http://login.wrioos.com";
 };
 
 class Start extends React.Component {
@@ -133,4 +133,4 @@ class Start extends React.Component {
 
 }
 
-React.render( < Start / > , document.getElementById('startholder'));
+ReactDom.render( < Start / > , document.getElementById('startholder'));
