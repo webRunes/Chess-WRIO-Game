@@ -5,7 +5,7 @@ var babelify = require('babelify');
 var source = require('vinyl-source-stream');
 var nodemon = require('gulp-nodemon');
 
-function restart_nodemon () {
+function restart_nodemon() {
     if (nodemon_instance) {
         console.log("Restarting nodemon");
         nodemon_instance.emit('restart');
@@ -21,15 +21,15 @@ gulp.task('babel-server', function() {
             console.log('Babel server:', err.toString());
         })
         .pipe(gulp.dest('app'))
-        .on('end',function (){
+        .on('end', function() {
             gulp.src('src/server/**/*.*')
                 .on('error', function(err) {
                     console.log('Babel server:', err.toString());
                 })
                 .pipe(gulp.dest('app/server'))
-                .on('end',function() {
+                .on('end', function() {
                     restart_nodemon();
-            });
+                });
         });
 
 
@@ -37,15 +37,15 @@ gulp.task('babel-server', function() {
 
 gulp.task('babel-client', function() {
     gulp.src('hub/*.*')
-        .on('error',function (err) {
+        .on('error', function(err) {
 
         })
         .pipe(gulp.dest('app/hub/'));
 
     browserify({
-        entries: './src/client/js/start.js',
-        debug: true
-    })
+            entries: './src/client/js/start.js',
+            debug: true
+        })
         .transform(babelify)
         .bundle()
         .on('error', function(err) {
