@@ -14,8 +14,8 @@ var $ = (function() {
 
     $.prototype = {
         db: {},
-        infoText: 'Visit http://chess.wrioos.com for info.',
-        chessUrl: 'chess' + nconf.get("server:workdomain"),
+        infoText: 'Visit https://chess.wrioos.com for info.',
+        chessUrl: 'https://chess' + nconf.get("server:workdomain"),
         //chessUrl: '127.0.0.1:5005',
         creds: {
             consumer_key: nconf.get("api:twitterLogin:consumerKey"),
