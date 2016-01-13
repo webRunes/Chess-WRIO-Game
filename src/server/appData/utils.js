@@ -39,11 +39,11 @@ exports.sendAppData = function(data) {
                 if (err) {
                     return console.log(err.message);
                 } else {
-                    return console.log('App data:', 'Application data have been sent to database');
+                    return console.log('App data:', 'Application data has been sent');
                 }
             });
         } else {
-            return console.log('App data:', 'Application data have been sent to database');
+            return console.log('App data:', 'Application data has been sent');
         }
 
     });
@@ -62,10 +62,10 @@ exports.getAppData = function() {
                 } else
 
                 if (results.length === 0) {
-                    console.log('App data is not found');
+                    console.log('App data not found');
                     resolve();
                 } else {
-                    console.log('App data:', 'Application data have been load from database')
+                    console.log('App data:', 'Application data loaded')
                     resolve(results[0].data);
                 }
 

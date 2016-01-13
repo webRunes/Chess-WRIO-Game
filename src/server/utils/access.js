@@ -28,7 +28,7 @@ exports.verify = function(args) {
                     });
                 } else {
                     reject({
-                        message: "no user"
+                        message: "App data not found"
                     });
                 }
             });

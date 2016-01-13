@@ -25,11 +25,11 @@ var $ = function(db) {
     function loginWithSessionId(ssid, done) {
         var match = ssid.match(/^[-A-Za-z0-9+/=_]+$/m);
         if (!match) {
-            console.log("Wrong ssid");
+            console.log("ssid invalid");
             done("Error");
             return
         }
-        console.log("Trying deserialize session", ssid);
+        console.log("Deserialize session attempt", ssid);
         sessions.findOne({
             "_id": ssid
         }, function(err, session) {
@@ -50,7 +50,7 @@ var $ = function(db) {
             if (user != undefined) {
                 deserialize(user, done);
             } else {
-                done("Wrong cookie")
+                done("Cookie invalid")
             }
 
             //done(err, rows[0]);
@@ -70,7 +70,7 @@ var $ = function(db) {
                         "tokenSecret": res.tokenSecret
                     })
                 } else {
-                    done("No login with twitter");
+                    done("Can't login with twitter");
                 }
             }
         });

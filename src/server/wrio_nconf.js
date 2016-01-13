@@ -6,7 +6,7 @@ nconf.env()
     .argv();
 nconf.file(path.resolve(__dirname, '../../config.json'));
 
-var defaultUrl = 'http://titter' + nconf.get('db:workdomain');
+var defaultUrl = 'https://titter' + nconf.get('db:workdomain');
 nconf.defaults({
     api: {
         titterUrl: defaultUrl
