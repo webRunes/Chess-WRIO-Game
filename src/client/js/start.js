@@ -17,7 +17,7 @@ function getLoginUrl() {
     var host = window.location.host;
     host = host.replace('chess.', 'login.');
     return "//" + host;
-    //  return "http://127.0.0.1:5000";
+    //return "https://login.wrioos.com";
 };
 
 class Start extends React.Component {
@@ -54,7 +54,7 @@ class Start extends React.Component {
             });
     }
 
-    componentDidUpdate() {
+    componentDidMount() {
         var that = this;
 
         function openAuthPopup() {
