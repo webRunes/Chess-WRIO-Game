@@ -76,7 +76,8 @@ db.mongo({
 
                 app.get('/callback', function(request, response) {
                     console.log("Our callback called");
-                    response.render('callback', {});
+                    response.sendFile(__dirname +
+                        '/client/views/callback.htm');
                 });
 
                 app.get('/logoff', function(request, response) {
