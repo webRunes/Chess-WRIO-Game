@@ -95,12 +95,14 @@ db.mongo({
                 }));
 
                 app.get('/data', function(req, res) {
-                    var uuid = req.query.uuid;
+                    var uuid = req.query.uuid,
+                        titterID = req.query.titterID;
                     chessController.getViewData({
                             uuid: uuid,
-                            session: req.sessionID
+                            titterID: titterID
                         })
                         .then(function(data) {
+                            console.log('data', data)
                             res.status(200)
                                 .json(data);
                         })

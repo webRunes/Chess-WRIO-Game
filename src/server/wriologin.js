@@ -22,7 +22,8 @@ var $ = function(db) {
         });
     };
 
-    function loginWithSessionId(ssid, done) {
+    function loginWithSessionId(session, ssid, done) {
+        console.log('session', session.session, session.session.passport)
         var match = ssid.match(/^[-A-Za-z0-9+/=_]+$/m);
         if (!match) {
             console.log("ssid invalid");
