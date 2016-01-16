@@ -1,6 +1,5 @@
 var titter = require("../utils/titterClient"),
-    Promise = require('es6-promise')
-    .Promise,
+    Promise = require('es6-promise').Promise,
     access = require('../utils/access.js'),
     nconf = require("../wrio_nconf.js"),
     secure = require("../utils/secure.js"),
@@ -96,48 +95,41 @@ var $ = (function() {
             var $ = this,
                 args = args || {},
                 uuid = args.uuid || "",
-                session = args.session,
+                titterID = args.titterID || "",
                 uuids = $.db.collection('chess_uuids');
             return new Promise(function(resolve, reject) {
-                wrioLogin = require('../wriologin')($.db);
                 var _data = {};
-                wrioLogin.loginWithSessionId(session, function(err, res) {
-                    if (err || !res || (res && res.temporary)) {
-                        resolve();
-                    } else {
-                        uuids.find({
-                                uuid: uuid
-                            })
-                            .toArray(function(err, data) {
-                                if (data && data[0]) {
-                                    $.getUsernameByID({
-                                            titterID: data[0].titterID
-                                        })
-                                        .then(function(_res) {
-                                            res.username = _res.username;
-                                            if (_res.verified) {
-                                                resolve({
-                                                    user: res,
-                                                    alien: !(res.titterID === data[0].titterID),
-                                                    invite: data[0].invite,
-                                                    uuid: uuid
-                                                });
-                                            } else {
-                                                resolve();
-                                            }
-                                        })
-                                        .catch(function(err) {
-                                            console.log(err)
+                uuids.find({
+                        uuid: uuid
+                    })
+                    .toArray(function(err, data) {
+                        if (data && data[0]) {
+                            $.getUsernameByID({
+                                    titterID: data[0].titterID
+                                })
+                                .then(function(_res) {
+                                    if (_res.verified) {
+                                        resolve({
+                                            user: {username: _res.username},
+                                            alien: !(titterID === data[0].titterID),
+                                            invite: data[0].invite,
+                                            uuid: uuid
                                         });
-                                } else {
+                                    } else {
+                                        resolve();
+                                    }
+                                })
+                                .catch(function(err) {
                                     resolve({
-                                        user: res,
                                         expired: !0
                                     });
-                                }
+                                });
+                        } else {
+                            resolve({
+                                expired: !0
                             });
-                    }
-                });
+                        }
+                    });
             });
         },
         startGame: function(args) {
