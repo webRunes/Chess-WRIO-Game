@@ -52,8 +52,6 @@ var $ = function(args, cb) {
         var uuid = req.body.uuid,
             chess = db.collection('chess');
         chessController.startGameRequestCallback({
-                user: req.body.user,
-                invite: req.body.invite,
                 uuid: uuid
             })
             .then(function(data) {
