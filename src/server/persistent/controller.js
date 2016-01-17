@@ -91,11 +91,31 @@ var $ = (function() {
                     });
             });
         },
+        getByWrioID: function(args) {
+            var args = args || {},
+                wrioID = args.wrioID || '',
+                users = $.db.collection('webRunes_Users');
+            return new Promise(function(resolve, reject) {
+                users.findOne({wrioID:wrioID}, function(err, data) {
+                    if (err) {
+                        console.log("Db user search error");
+                        reject(err);
+                        return;
+                    }
+                    if (!data) {
+                        console.log('Db user not found');
+                        reject('User not found '+wrioID);
+                        return;
+                    }
+                    resolve(data);
+                })
+            });
+        },
         getViewData: function(args) {
             var $ = this,
                 args = args || {},
                 uuid = args.uuid || "",
-                titterID = args.titterID || "",
+                wrioID = args.wrioID || "",
                 uuids = $.db.collection('chess_uuids');
             return new Promise(function(resolve, reject) {
                 var _data = {};
@@ -104,14 +124,17 @@ var $ = (function() {
                     })
                     .toArray(function(err, data) {
                         if (data && data[0]) {
-                            $.getUsernameByID({
+                            $.getByWrioID({
+                                wrioID: wrioID
+                            }).then(function(res) {
+                                $.getUsernameByID({
                                     titterID: data[0].titterID
                                 })
                                 .then(function(_res) {
                                     if (_res.verified) {
                                         resolve({
                                             user: {username: _res.username},
-                                            alien: !(titterID === data[0].titterID),
+                                            alien: !(res.titterID === data[0].titterID),
                                             invite: data[0].invite,
                                             uuid: uuid
                                         });
@@ -124,6 +147,11 @@ var $ = (function() {
                                         expired: !0
                                     });
                                 });
+                            }).catch(function(err) {
+                                resolve({
+                                    expired: !0
+                                });
+                            });
                         } else {
                             resolve({
                                 expired: !0
@@ -386,45 +414,54 @@ var $ = (function() {
         userAccessRequestCallback: function(args) {
             var $ = this,
                 args = args || {},
-                titterID = args.user || "",
-                uuid = args.uuid,
+                uuid = args.uuid || '',
+                uuids = $.db.collection('chess_uuids'),
                 webRunes_Users = $.db.collection('webRunes_Users'),
                 users = $.db.collection('users');
             return new Promise(function(resolve, reject) {
-                users.find({
-                        titterID: titterID
-                    })
-                    .toArray(function(err, data) {
-                        if (err || data.length === 0) {
-                            reject();
-                        } else {
-                            webRunes_Users.find({
-                                    titterID: titterID
-                                })
-                                .toArray(function(err, _data) {
-                                    if (err || data.length === 0) {
-                                        reject();
-                                    } else {
-                                        $.startGameRequest({
-                                                name: data[0].name,
-                                                last_opponent: data[0].last_opponent,
-                                                titterID: data[0].titterID,
-                                                access: {
-                                                    token: _data[0].token,
-                                                    tokenSecret: _data[0].tokenSecret
-                                                }
-                                            })
-                                            .then(function(res) {
-                                                resolve(res.message);
-                                            })
-                                            .catch(function(err) {
-                                                console.log(err)
-                                                reject(err);
-                                            });
-                                    }
-                                });
-                        }
-                    });
+                uuids.find({
+                    uuid: uuid
+                }).toArray(function(err, data) {
+                    if (err || data.length === 0) {
+                        reject();
+                    } else {
+                        var titterID = data[0].titterID;                        
+                        users.find({
+                                titterID: titterID
+                            })
+                            .toArray(function(err, data) {
+                                if (err || data.length === 0) {
+                                    reject();
+                                } else {
+                                    webRunes_Users.find({
+                                            titterID: titterID
+                                        })
+                                        .toArray(function(err, _data) {
+                                            if (err || data.length === 0) {
+                                                reject();
+                                            } else {
+                                                $.startGameRequest({
+                                                        name: data[0].name,
+                                                        last_opponent: data[0].last_opponent,
+                                                        titterID: data[0].titterID,
+                                                        access: {
+                                                            token: _data[0].token,
+                                                            tokenSecret: _data[0].tokenSecret
+                                                        }
+                                                    })
+                                                    .then(function(res) {
+                                                        resolve(res.message);
+                                                    })
+                                                    .catch(function(err) {
+                                                        console.log(err)
+                                                        reject(err);
+                                                    });
+                                            }
+                                        });
+                                }
+                            });
+                    }
+                });
             });
         },
         opponentAccessRequestCallback: function(args) {
@@ -448,45 +485,54 @@ var $ = (function() {
         startGameRequestCallback: function(args) {
             var $ = this,
                 args = args || {},
-                invite = args.invite,
                 uuid = args.uuid,
-                user = args.user,
-                chess = $.db.collection('chess');
+                chess = $.db.collection('chess'),
+                uuids = $.db.collection('chess_uuids');
             return new Promise(function(resolve, reject) {
-                chess.find({
-                        invite: invite
-                    })
-                    .toArray(function(err, data) {
-                        if (err || !data[0]) {
-                            reject(err || 'Invalid or expired invite token');
-                        } else {
-                            access.auth({
-                                    status: {
-                                        user: {
-                                            screen_name: data[0].opponent,
-                                            id_str: user
-                                        },
-                                        id_str: null
-                                    },
-                                    opponent: data[0].name,
-                                    creds: $.creds,
-                                    db: $.db
-                                })
-                                .then(function(res) {
-                                    return $.startGameRequestAccept(res);
-                                })
-                                .then(function(res) {
-                                    resolve(res.message);
-                                })
-                                .catch(function(err) {
-                                    if (err) {
-                                        reject(err);
-                                    } else {
-                                        resolve('New user. Access request to @' + data[0].opponent);
-                                    }
-                                });
-                        }
-                    });
+                uuids.find({
+                    uuid: uuid
+                }).toArray(function(err, data) {
+                    if (err || data.length === 0) {
+                        reject();
+                    } else {
+                        var titterID = data[0].titterID,
+                            invite = data[0].invite;
+                        chess.find({
+                                invite: invite
+                            })
+                            .toArray(function(err, data) {
+                                if (err || !data[0]) {
+                                    reject(err || 'Invalid or expired invite token');
+                                } else {
+                                    access.auth({
+                                            status: {
+                                                user: {
+                                                    screen_name: data[0].opponent,
+                                                    id_str: titterID
+                                                },
+                                                id_str: null
+                                            },
+                                            opponent: data[0].name,
+                                            creds: $.creds,
+                                            db: $.db
+                                        })
+                                        .then(function(res) {
+                                            return $.startGameRequestAccept(res);
+                                        })
+                                        .then(function(res) {
+                                            resolve(res.message);
+                                        })
+                                        .catch(function(err) {
+                                            if (err) {
+                                                reject(err);
+                                            } else {
+                                                resolve('New user. Access request to @' + data[0].opponent);
+                                            }
+                                        });
+                                }
+                            });
+                    }
+                });
             });
         },
         startGameRequestAccept: function(args) {

@@ -14,10 +14,8 @@ var $ = function(args, cb) {
         chessController = args.chessController || {};
 
     router.post('/access_callback', function(req, res) {
-        var user = req.body.user || '';
         var uuid = req.body.uuid;
         chessController.userAccessRequestCallback({
-                user: user,
                 uuid: uuid
             })
             .then(function() {
