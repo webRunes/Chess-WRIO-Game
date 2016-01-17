@@ -16,7 +16,7 @@ var Titter = new(require('./server/app.js'))(),
     chessController = new(require('./server/persistent/controller.js'))();
 
 app.use(function(request, response, next) {
-    response.setHeader('Access-Control-Allow-Origin', 'https://wrioos.com');
+    response.setHeader('Access-Control-Allow-Origin', 'https://chess.wrioos.com');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
     response.setHeader('Access-Control-Allow-Credentials', true);
