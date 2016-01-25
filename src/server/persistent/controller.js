@@ -92,7 +92,8 @@ var $ = (function() {
             });
         },
         getByWrioID: function(args) {
-            var args = args || {},
+            var $ = this,
+                args = args || {},
                 wrioID = args.wrioID || '',
                 users = $.db.collection('webRunes_Users');
             return new Promise(function(resolve, reject) {
@@ -166,152 +167,185 @@ var $ = (function() {
                 status = args.status || {},
                 opponent = args.opponent || '';
             return new Promise(function(resolve, reject) {
-                var chess = $.db.collection('chess');
-                chess.find({
-                        $or: [{
-                            name: status.user.screen_name,
-                            $or: [{
-                                status: 1
-                            }, {
-                                status: 0
-                            }]
-                        }, {
-                            opponent: status.user.screen_name,
-                            $or: [{
-                                status: 1
-                            }, {
-                                status: 0
-                            }]
-                        }]
+                if (opponent === status.user.screen_name) {
+                    titter.drawComment({
+                        message: 'Invite your friend to join you',
+                        access: {
+                            accessToken: $.creds.access_token,
+                            accessTokenSecret: $.creds.access_secret
+                        }
                     })
-                    .toArray(function(err, data) {
-                        if (data && data[0]) {
-                            titter.drawComment({
-                                    message: 'The game in progress! Please send "#chess end" if you would like to stop the current game.',
-                                    access: {
-                                        accessToken: $.creds.access_token,
-                                        accessTokenSecret: $.creds.access_secret
-                                    }
-                                })
-                                .then(function(__data) {
-                                    try {
-                                        __data = JSON.parse(__data);
-                                    } catch (e) {}
-                                    return titter.reply({
-                                        user: status.user.screen_name,
-                                        message: '@' + status.user.screen_name,
-                                        media_ids: __data.media_id_string,
-                                        in_reply_to_status_id: status.id_str,
+                    .then(function(__data) {
+                        try {
+                            __data = JSON.parse(__data);
+                        } catch (e) {}
+                        return titter.reply({
+                            user: status.user.screen_name,
+                            message: '@' + status.user.screen_name,
+                            media_ids: __data.media_id_string,
+                            in_reply_to_status_id: status.id_str,
+                            access: {
+                                accessToken: $.creds.access_token,
+                                accessTokenSecret: $.creds.access_secret
+                            }
+                        });
+                    })
+                    .then(function() {
+                        resolve({
+                            message: 'Invite your friend to join you'
+                        })
+                    })
+                    .catch(function(err) {
+                        reject(err);
+                    });
+                } else {
+                    var chess = $.db.collection('chess');
+                    chess.find({
+                            $or: [{
+                                name: status.user.screen_name,
+                                $or: [{
+                                    status: 1
+                                }, {
+                                    status: 0
+                                }]
+                            }, {
+                                opponent: status.user.screen_name,
+                                $or: [{
+                                    status: 1
+                                }, {
+                                    status: 0
+                                }]
+                            }]
+                        })
+                        .toArray(function(err, data) {
+                            if (data && data[0]) {
+                                titter.drawComment({
+                                        message: 'The game in progress! Please send "#chess end" if you would like to stop the current game.',
                                         access: {
                                             accessToken: $.creds.access_token,
                                             accessTokenSecret: $.creds.access_secret
                                         }
-                                    });
-                                })
-                                .then(function() {
-                                    resolve({
-                                        message: 'Game started yet!'
                                     })
-                                })
-                                .catch(function(err) {
-                                    reject(err);
-                                });
-                        } else {
-                            chess.find({
-                                    $or: [{
-                                        name: opponent,
+                                    .then(function(__data) {
+                                        try {
+                                            __data = JSON.parse(__data);
+                                        } catch (e) {}
+                                        return titter.reply({
+                                            user: status.user.screen_name,
+                                            message: '@' + status.user.screen_name,
+                                            media_ids: __data.media_id_string,
+                                            in_reply_to_status_id: status.id_str,
+                                            access: {
+                                                accessToken: $.creds.access_token,
+                                                accessTokenSecret: $.creds.access_secret
+                                            }
+                                        });
+                                    })
+                                    .then(function() {
+                                        resolve({
+                                            message: 'Game started yet!'
+                                        })
+                                    })
+                                    .catch(function(err) {
+                                        reject(err);
+                                    });
+                            } else {
+                                chess.find({
                                         $or: [{
-                                            status: 1
+                                            name: opponent,
+                                            $or: [{
+                                                status: 1
+                                            }, {
+                                                status: 0
+                                            }]
                                         }, {
-                                            status: 0
+                                            name: {
+                                                $ne: status.user.screen_name
+                                            },
+                                            opponent: opponent,
+                                            $or: [{
+                                                status: 1
+                                            }, {
+                                                status: 0
+                                            }]
                                         }]
-                                    }, {
-                                        name: {
-                                            $ne: status.user.screen_name
-                                        },
-                                        opponent: opponent,
-                                        $or: [{
-                                            status: 1
-                                        }, {
-                                            status: 0
-                                        }]
-                                    }]
-                                })
-                                .toArray(function(err, data) {
-                                    if (data && data[0]) {
-                                        var users = $.db.collection('users');
-                                        var webRunes_Users = $.db.collection('webRunes_Users');
-                                        var _opponent = data[0].name === opponent ? data[0].opponent : data[0].name;
-                                        users.find({
-                                                name: opponent
-                                            })
-                                            .toArray(function(err, data) {
-                                                if (data && data[0]) {
-                                                    webRunes_Users.find({
-                                                            titterID: data[0].titterID
-                                                        })
-                                                        .toArray(function(err, _data) {
-                                                            return titter.drawComment({
-                                                                message: '@' + status.user.screen_name + ', sorry, I`m already playing with @' + _opponent,
-                                                                access: {
-                                                                    accessToken: _data[0].token,
-                                                                    accessTokenSecret: _data[0].tokenSecret
-                                                                }
-                                                            });
-                                                        })
-                                                        .then(function(__data) {
-                                                            try {
-                                                                __data = JSON.parse(__data);
-                                                            } catch (e) {}
-                                                            return titter.reply({
-                                                                user: opponent,
-                                                                message: '@' + status.user.screen_name,
-                                                                media_ids: __data.media_id_string,
-                                                                in_reply_to_status_id: status.id_str,
-                                                                access: {
-                                                                    accessToken: _data[0].token,
-                                                                    accessTokenSecret: _data[0].tokenSecret
-                                                                }
-                                                            });
-                                                        })
-                                                        .then(function() {
-                                                            resolve({
-                                                                message: 'Opponent is busy!'
+                                    })
+                                    .toArray(function(err, data) {
+                                        if (data && data[0]) {
+                                            var users = $.db.collection('users');
+                                            var webRunes_Users = $.db.collection('webRunes_Users');
+                                            var _opponent = data[0].name === opponent ? data[0].opponent : data[0].name;
+                                            users.find({
+                                                    name: opponent
+                                                })
+                                                .toArray(function(err, data) {
+                                                    if (data && data[0]) {
+                                                        webRunes_Users.find({
+                                                                titterID: data[0].titterID
                                                             })
+                                                            .toArray(function(err, _data) {
+                                                                return titter.drawComment({
+                                                                    message: '@' + status.user.screen_name + ', sorry, I`m already playing with @' + _opponent,
+                                                                    access: {
+                                                                        accessToken: _data[0].token,
+                                                                        accessTokenSecret: _data[0].tokenSecret
+                                                                    }
+                                                                });
+                                                            })
+                                                            .then(function(__data) {
+                                                                try {
+                                                                    __data = JSON.parse(__data);
+                                                                } catch (e) {}
+                                                                return titter.reply({
+                                                                    user: opponent,
+                                                                    message: '@' + status.user.screen_name,
+                                                                    media_ids: __data.media_id_string,
+                                                                    in_reply_to_status_id: status.id_str,
+                                                                    access: {
+                                                                        accessToken: _data[0].token,
+                                                                        accessTokenSecret: _data[0].tokenSecret
+                                                                    }
+                                                                });
+                                                            })
+                                                            .then(function() {
+                                                                resolve({
+                                                                    message: 'Opponent is busy!'
+                                                                })
+                                                            })
+                                                            .catch(function(err) {
+                                                                reject(err);
+                                                            });
+                                                    } else {
+                                                        resolve({
+                                                            message: 'Undefined user.'
                                                         })
-                                                        .catch(function(err) {
-                                                            reject(err);
-                                                        });
-                                                } else {
-                                                    resolve({
-                                                        message: 'Undefined user.'
-                                                    })
-                                                }
-                                            });
-                                    } else {
-                                        access.auth({
-                                                status: status,
-                                                opponent: opponent,
-                                                creds: $.creds,
-                                                db: $.db
-                                            })
-                                            .then(function(res) {
-                                                return $.startGameRequest(res);
-                                            })
-                                            .then(function(args) {
-                                                resolve(args.message);
-                                            })
-                                            .catch(function(err) {
-                                                if (err) {
-                                                    reject(err);
-                                                } else {
-                                                    resolve('New user. Access request to @' + status.user.screen_name);
-                                                }
-                                            });
-                                    }
-                                });
-                        }
-                    });
+                                                    }
+                                                });
+                                        } else {
+                                            access.auth({
+                                                    status: status,
+                                                    opponent: opponent,
+                                                    creds: $.creds,
+                                                    db: $.db
+                                                })
+                                                .then(function(res) {
+                                                    return $.startGameRequest(res);
+                                                })
+                                                .then(function(args) {
+                                                    resolve(args.message);
+                                                })
+                                                .catch(function(err) {
+                                                    if (err) {
+                                                        reject(err);
+                                                    } else {
+                                                        resolve('New user. Access request to @' + status.user.screen_name);
+                                                    }
+                                                });
+                                        }
+                                    });
+                            }
+                        });
+                }
             });
         },
         startGameRequest: function(args) {
