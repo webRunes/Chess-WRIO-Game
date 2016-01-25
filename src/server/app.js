@@ -1,4 +1,5 @@
-var bigInt = require("big-integer");
+ var _ = require('lodash');
+ var bigInt = require("big-integer");
 
 var TitterClient = require('./utils/titterClient.js');
 var Chess = new(require('./persistent/controller.js'))();

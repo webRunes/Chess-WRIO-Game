@@ -15,6 +15,7 @@ var $ = function(args, cb) {
 
     router.post('/access_callback', function(req, res) {
         var uuid = req.body.uuid;
+        console.log('Got /api/access_callback');
         chessController.userAccessRequestCallback({
                 uuid: uuid
             })
@@ -38,7 +39,9 @@ var $ = function(args, cb) {
                         .deleteOne({
                             uuid: uuid
                         }, function(err, res) {
-                            console.log(err, res)
+                            if (err) {
+                                console.log(err);
+                            }
                         });
                 }
             })
@@ -74,7 +77,9 @@ var $ = function(args, cb) {
                                 .deleteOne({
                                     uuid: uuid
                                 }, function(err, res) {
-                                    console.log(err)
+                                    if (err) {
+                                        console.log(err);
+                                    }
                                 });
                         }
                     })
