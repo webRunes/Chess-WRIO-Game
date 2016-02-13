@@ -105,7 +105,7 @@ db.mongo({
                                 .json(data);
                         })
                         .catch(function(err) {
-                            console.log("route error: ", err || "err")
+                            console.log("route error: ", err || "err");
                             res.status(400)
                                 .send(err || "err");
                         });
