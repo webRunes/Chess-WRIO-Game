@@ -66,18 +66,18 @@ db.mongo({
 
                 app.get('/', function(request, response) {
                     response.sendFile(__dirname +
-                        '/hub/index.htm');
+                        '/hub/index.html');
                 });
 
                 app.get('/start', function(request, response) {
                     response.sendFile(__dirname +
-                        '/client/views/start.htm');
+                        '/client/views/start.html');
                 });
 
                 app.get('/callback', function(request, response) {
                     console.log("Our callback called");
                     response.sendFile(__dirname +
-                        '/client/views/callback.htm');
+                        '/client/views/callback.html');
                 });
 
                 app.get('/logoff', function(request, response) {
