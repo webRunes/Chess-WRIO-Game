@@ -16,7 +16,7 @@ var Titter = new(require('./server/app.js'))(),
     chessController = new(require('./server/persistent/controller.js'))();
 
 app.use(function(request, response, next) {
-    response.setHeader('Access-Control-Allow-Origin', 'https://wrioos.com');
+    response.setHeader('Access-Control-Allow-Origin', 'https://chess.wrioos.com');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
     response.setHeader('Access-Control-Allow-Credentials', true);
@@ -95,12 +95,14 @@ db.mongo({
                 }));
 
                 app.get('/data', function(req, res) {
-                    var uuid = req.query.uuid;
+                    var uuid = req.query.uuid,
+                        wrioID = req.query.wrid;
                     chessController.getViewData({
                             uuid: uuid,
-                            session: req.sessionID
+                            wrioID: wrioID
                         })
                         .then(function(data) {
+                            console.log('data', data)
                             res.status(200)
                                 .json(data);
                         })

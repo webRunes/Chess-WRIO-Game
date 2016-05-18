@@ -14,10 +14,9 @@ var $ = function(args, cb) {
         chessController = args.chessController || {};
 
     router.post('/access_callback', function(req, res) {
-        var user = req.body.user || '';
         var uuid = req.body.uuid;
+        console.log('Got /api/access_callback');
         chessController.userAccessRequestCallback({
-                user: user,
                 uuid: uuid
             })
             .then(function() {
@@ -40,7 +39,9 @@ var $ = function(args, cb) {
                         .deleteOne({
                             uuid: uuid
                         }, function(err, res) {
-                            console.log(err, res)
+                            if (err) {
+                                console.log(err);
+                            }
                         });
                 }
             })
@@ -54,8 +55,6 @@ var $ = function(args, cb) {
         var uuid = req.body.uuid,
             chess = db.collection('chess');
         chessController.startGameRequestCallback({
-                user: req.body.user,
-                invite: req.body.invite,
                 uuid: uuid
             })
             .then(function(data) {
@@ -78,7 +77,9 @@ var $ = function(args, cb) {
                                 .deleteOne({
                                     uuid: uuid
                                 }, function(err, res) {
-                                    console.log(err)
+                                    if (err) {
+                                        console.log(err);
+                                    }
                                 });
                         }
                     })
